@@ -2,6 +2,8 @@ package com.theanh.dev.IAM_Service.Service.Auth;
 
 import com.theanh.dev.IAM_Service.Dtos.Auth.AuthDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
+import com.theanh.dev.IAM_Service.Exception.AppException;
+import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
 import com.theanh.dev.IAM_Service.Model.Users;
 import com.theanh.dev.IAM_Service.Repository.UserRepository;
@@ -29,14 +31,14 @@ public class AuthService implements IAuthService{
     @Override
     public AuthResponse login(AuthDto authDto) {
         var user = userRepository.findByEmail(authDto.getEmail())
-                .orElseThrow(() -> new RuntimeException("User existed!"));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         boolean authenticated = passwordEncoder.matches(authDto.getPassword(), user.getPassword());
 
         if (!authenticated)
-            throw new RuntimeException("User unauthenticated");
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
 
-        var token = jwtUtil.generateToken(authDto.getEmail());
+        var token = jwtUtil.generateToken(user);
 
         return AuthResponse.builder()
                 .token(token)
@@ -47,8 +49,17 @@ public class AuthService implements IAuthService{
     @Override
     public UserDto register(UserDto userDto) {
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            throw new RuntimeException("User already existed");
+            throw new AppException(ErrorCode.USER_EXISTED);
         }
+
+        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
+            throw new AppException(ErrorCode.TAKEN_USERNAME);
+        }
+
+        if (userDto.getEmail().isEmpty() || userDto.getUsername().isEmpty() || userDto.getPassword().isEmpty()){
+            throw new AppException(ErrorCode.INCOMPLETE_DETAIL);
+        }
+
         Users register = userMapper.toUser(userDto);
         register.setPassword(passwordEncoder.encode(userDto.getPassword()));
 

@@ -20,7 +20,7 @@ spring:
         format_sql: true
 
 jwt:
-  secretKey: "vtaAfuI0IICKWzIloKyMdSXieIT9YerYuM5y1zfa9lpHqAqDNZHq12AWYqFbVmhY"
+  secretKey: "s/beSs9t6Hj9M1uAX1qq6AB1jKQW26HBzY8GZ2ts+bQqP9s7vO4q561zZejMQUgZ"
 
 
 info:

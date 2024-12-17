@@ -2,8 +2,10 @@ package com.theanh.dev.IAM_Service.Controller;
 
 import com.theanh.dev.IAM_Service.Dtos.Auth.AuthDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
+import com.theanh.dev.IAM_Service.Response.ApiResponse;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Service.Auth.AuthService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,12 +21,12 @@ public class AuthController {
     AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@RequestBody UserDto userDto) {
+    public ResponseEntity<UserDto> register(@RequestBody @Valid UserDto userDto) {
         return ResponseEntity.ok(authService.register(userDto));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthDto authDto) {
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthDto authDto) {
         return ResponseEntity.ok(authService.login(authDto));
     }
 }

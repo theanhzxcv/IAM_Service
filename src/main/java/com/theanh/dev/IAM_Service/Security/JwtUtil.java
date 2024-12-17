@@ -1,13 +1,11 @@
 package com.theanh.dev.IAM_Service.Security;
 
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jwt.JWTClaimsSet;
+import com.theanh.dev.IAM_Service.Model.Users;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -19,27 +17,13 @@ public class JwtUtil {
     @Value("${jwt.secretKey}")
     protected String SECRET_KEY;
 
-    public String generateToken(String email) {
-        JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
-
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(email)
-                .issuer("theanh.dev")
-                .issueTime(new Date())
-                .expirationTime(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
-                .claim("scope", "value")
-                .build();
-
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-
-        JWSObject jwsObject = new JWSObject(jwsHeader, payload);
-
-        try {
-            jwsObject.sign(new MACSigner(SECRET_KEY.getBytes()));
-            return jwsObject.serialize();
-        } catch (JOSEException e) {
-            throw new RuntimeException(e);
-        }
+    public String generateToken(Users user) {
+        return Jwts.builder()
+                .setSubject(user.getUsername())
+                .setIssuer("theanh.dev")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 giờ
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY) .compact();
     }
 
     public Claims extractClaims(String token) {

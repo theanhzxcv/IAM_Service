@@ -18,9 +18,10 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String email;
+    private String username;
     private String password;
-
     private String fullname;
     private String address;
+    private int phone;
     private Date doB;
 }
