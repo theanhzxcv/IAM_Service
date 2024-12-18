@@ -24,17 +24,29 @@ public class JwtUtil {
 
     RSAKeyUtil rsaKeyUtil;
 
-    public String generateToken(UserDetails userDetails) throws Exception {
+    public String generateAccessToken(UserDetails userDetails) throws Exception {
         PrivateKey privateKey = rsaKeyUtil.getPrivateKey();
+        long accessTokenExpiration = 1000 * 60;
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))
+                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
 
-    public Claims extractClaims(String token) throws Exception {
+    public String generateRefreshToken(UserDetails userDetails) throws Exception {
+        PrivateKey privateKey = rsaKeyUtil.getPrivateKey();
+        long refreshTokenExpiration = 1000 * 60 * 60;
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
+                .signWith(privateKey, SignatureAlgorithm.RS256)
+                .compact();
+    }
+
+        public Claims extractClaims(String token) throws Exception {
         PublicKey publicKey = rsaKeyUtil.getPublicKey();
 
         return Jwts.parserBuilder()

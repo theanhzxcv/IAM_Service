@@ -1,5 +1,6 @@
 package com.theanh.dev.IAM_Service.Service.Auth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.theanh.dev.IAM_Service.Dtos.Auth.AuthDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
@@ -9,11 +10,22 @@ import com.theanh.dev.IAM_Service.Model.Users;
 import com.theanh.dev.IAM_Service.Repository.UserRepository;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
+import com.theanh.dev.IAM_Service.Service.Email.EmailService;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +40,8 @@ public class AuthService implements IAuthService{
 
     JwtUtil jwtUtil;
 
+    EmailService emailService;
+
     @Override
     public AuthResponse login(AuthDto authDto) {
         var user = userRepository.findByEmail(authDto.getEmail())
@@ -38,16 +52,20 @@ public class AuthService implements IAuthService{
         if (!authenticated)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
-        String token = null;
+        String accessToken = null;
+
+        String refreshToken = null;
 
         try {
-            token = jwtUtil.generateToken(user);
+            accessToken = jwtUtil.generateAccessToken(user);
+            refreshToken = jwtUtil.generateRefreshToken(user);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
         return AuthResponse.builder()
-                .token(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .authenticated(true)
                 .build();
     }
@@ -67,6 +85,49 @@ public class AuthService implements IAuthService{
 
         Users saveUser = userRepository.save(register);
 
+//        try {
+//            emailService.sendRegistrationEmail(saveUser.getEmail(), saveUser.getFirstname(), saveUser.getLastname());
+//        } catch (MessagingException e) {
+//            throw new RuntimeException(e);
+//        }
+
         return userMapper.toUserDto(saveUser);
+    }
+
+    @Override
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String refreshToken;
+        final String userEmail;
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return;
+        }
+
+        refreshToken = authHeader.substring(7);
+        userEmail = jwtUtil.extractUsername(refreshToken);
+
+        if (userEmail != null) {
+            var user = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            if (jwtUtil.isTokenValid(refreshToken, user)) {
+                String accessToken = null;
+                try {
+                    accessToken = jwtUtil.generateAccessToken(user);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+//                revokeAllUserTokens(user);
+//                saveUserToken(user, accessToken);
+                var authResponse = AuthResponse.builder()
+                        .accessToken(accessToken)
+                        .refreshToken(refreshToken)
+                        .build();
+                try {
+                    new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 }

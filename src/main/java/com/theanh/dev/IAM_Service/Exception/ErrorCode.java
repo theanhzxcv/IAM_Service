@@ -19,9 +19,11 @@ public enum ErrorCode {
     INCOMPLETE_DETAIL( "User details are incomplete!", HttpStatus.BAD_REQUEST),
     INVALID_USERNAME("Username must be between 3 and 20 characters!", HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD("Password must be at least 8 characters long, contain at least one number, one uppercase letter, and one special character.", HttpStatus.BAD_REQUEST),
-    INVALID_EMAIL("Invalid email format", HttpStatus.BAD_REQUEST),
-    INVALID_DOB("Date of birth must be a past date", HttpStatus.BAD_REQUEST),
-    INVALID_PHONE_NUMBER("Phone number must be 10 digits", HttpStatus.BAD_REQUEST)
+    INVALID_EMAIL("Invalid email format!", HttpStatus.BAD_REQUEST),
+    INVALID_DOB("Date of birth must be a past date!", HttpStatus.BAD_REQUEST),
+    INVALID_PHONE_NUMBER("Phone number must be 10 digits!", HttpStatus.BAD_REQUEST),
+    WRONG_PASSWORD("Wrong password!", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH("Password are not the same!", HttpStatus.BAD_REQUEST)
     ;
 
     private final String message;

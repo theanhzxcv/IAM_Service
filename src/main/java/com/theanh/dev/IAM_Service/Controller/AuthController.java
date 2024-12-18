@@ -5,12 +5,16 @@ import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Response.ApiResponse;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Service.Auth.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,5 +32,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthDto authDto) {
         return ResponseEntity.ok(authService.login(authDto));
+    }
+
+    @PostMapping("/refresh-token")
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        authService.refreshToken(request, response);
     }
 }

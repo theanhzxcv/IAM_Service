@@ -1,5 +1,6 @@
 package com.theanh.dev.IAM_Service.Mapper;
 
+import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
 import com.theanh.dev.IAM_Service.Model.Users;
@@ -15,9 +16,11 @@ public interface UserMapper {
 
     UserDto toUserDto(Users user);
 
-    UserResponse toUserRespose(Users user);
+    UserResponse toUserResponse(Users user);
 
     UserUpdateDto toUserUpdateDto(Users user);
+
+    ChangePasswordDto toChangePasswordDto(Users user);
 
 
 //    List<UserDto> toUserDtos(Users users);
