@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public interface IAuthService {
     AuthResponse login(AuthDto authLoginDto);
 
-    UserDto register(UserDto userDto);
+    String register(UserDto userDto);
 
     void refreshToken(HttpServletRequest request, HttpServletResponse response);
 }

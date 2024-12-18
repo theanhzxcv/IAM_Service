@@ -11,7 +11,6 @@ import com.theanh.dev.IAM_Service.Repository.UserRepository;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
 import com.theanh.dev.IAM_Service.Service.Email.EmailService;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
@@ -71,7 +70,7 @@ public class AuthService implements IAuthService{
     }
 
     @Override
-    public UserDto register(UserDto userDto) {
+    public String register(UserDto userDto) {
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
@@ -85,13 +84,10 @@ public class AuthService implements IAuthService{
 
         Users saveUser = userRepository.save(register);
 
-//        try {
-//            emailService.sendRegistrationEmail(saveUser.getEmail(), saveUser.getFirstname(), saveUser.getLastname());
-//        } catch (MessagingException e) {
-//            throw new RuntimeException(e);
-//        }
+        emailService.sendRegistrationEmail(userDto.getEmail(), userDto.getPassword(), userDto.getFirstname(), userDto.getLastname());
 
-        return userMapper.toUserDto(saveUser);
+//        return userMapper.toUserDto(saveUser);
+        return "Registered successfully!";
     }
 
     @Override
@@ -116,8 +112,6 @@ public class AuthService implements IAuthService{
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-//                revokeAllUserTokens(user);
-//                saveUserToken(user, accessToken);
                 var authResponse = AuthResponse.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)

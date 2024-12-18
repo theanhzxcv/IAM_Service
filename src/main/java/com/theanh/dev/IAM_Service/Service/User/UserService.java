@@ -71,6 +71,8 @@ public class UserService implements IUserService {
         }
         Users updateProfile = userRepository.save(user);
 
+        emailService.sendProfileUpdateEmail(updateProfile.getEmail());
+
         return userMapper.toUserUpdateDto(updateProfile);
     }
 
@@ -90,6 +92,8 @@ public class UserService implements IUserService {
         if (!changePasswordDto.getNewPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(changePasswordDto.getNewPassword()));
         }
+
+        emailService.sendPasswordChangeEmail(user.getEmail(), changePasswordDto.getNewPassword());
 
         userRepository.save(user);
     }
