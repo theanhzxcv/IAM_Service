@@ -16,19 +16,20 @@ import java.util.Date;
 public class UserDto {
 
     @NotBlank
+    @Size(min = 3, max = 20, message = "INVALID_NAME")
+    private String firstname;
+
+    @NotBlank
+    @Size(min = 3, max = 20, message = "INVALID_NAME")
+    private String lastname;
+
+    @NotBlank
     @Email(message = "INVALID_EMAIL")
     private String email;
 
     @NotBlank
-    @Size(min = 3, max = 20, message = "INVALID_USERNAME")
-    private String username;
-
-    @NotBlank
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[@#$%^&+=_]).{8,}$", message = "INVALID_PASSWORD")
     private String password;
-
-    @NotBlank
-    private String fullname;
 
     @NotBlank
     private String address;

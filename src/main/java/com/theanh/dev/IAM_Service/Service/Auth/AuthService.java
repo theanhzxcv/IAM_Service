@@ -58,11 +58,7 @@ public class AuthService implements IAuthService{
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
-        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            throw new AppException(ErrorCode.TAKEN_USERNAME);
-        }
-
-        if (userDto.getEmail().isEmpty() || userDto.getUsername().isEmpty() || userDto.getPassword().isEmpty()){
+        if (userDto.getEmail().isEmpty() || userDto.getPassword().isEmpty()){
             throw new AppException(ErrorCode.INCOMPLETE_DETAIL);
         }
 

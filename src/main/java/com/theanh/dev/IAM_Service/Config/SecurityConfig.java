@@ -31,13 +31,9 @@ public class SecurityConfig {
                         authorizationManagerRequest
                                 .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
                                 .anyRequest().authenticated())
+
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
     }
 }

@@ -1,6 +1,5 @@
 package com.theanh.dev.IAM_Service.Service.User;
 
-import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
@@ -23,31 +22,31 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class UserService implements UserDetailsService, IUserService {
+public class UserService implements IUserService {
 
     UserRepository userRepository;
 
     UserMapper userMapper;
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Users> user = userRepository.findByUsername(username);
-        if (user.isPresent()) {
-            var userObj = user.get();
-            return User.builder()
-                    .username(userObj.getUsername())
-                    .password(userObj.getPassword())
-                    .build();
-        }else{
-            throw new UsernameNotFoundException(username);
-        }
-    }
+//    @Override
+//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+//        Optional<Users> user = userRepository.findByEmail(username);
+//        if (user.isPresent()) {
+//            var userObj = user.get();
+//            return User.builder()
+//                    .username(userObj.getUsername())
+//                    .password(userObj.getPassword())
+//                    .build();
+//        }else{
+//            throw new UsernameNotFoundException(username);
+//        }
+//    }
 
     @Override
     public UserResponse myProfile() {
-        String name = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Users user = userRepository.findByUsername(name)
+        Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         return userMapper.toUserRespose(user);
@@ -55,13 +54,16 @@ public class UserService implements UserDetailsService, IUserService {
 
     @Override
     public UserUpdateDto updateProfile(UserUpdateDto userUpdateDto) {
-        String name = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Users user = userRepository.findByUsername(name)
+        Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (!userUpdateDto.getFullname().equals(user.getFullname())) {
-            user.setFullname(userUpdateDto.getFullname());
+        if (userUpdateDto.getFirstname() != null) {
+            user.setFirstname(userUpdateDto.getFirstname());
+        }
+        if (userUpdateDto.getLastname() != null) {
+            user.setLastname(userUpdateDto.getLastname());
         }
         if (userUpdateDto.getAddress() != null) {
             user.setAddress(userUpdateDto.getAddress());

@@ -5,8 +5,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.PrivateKey;
@@ -15,18 +19,18 @@ import java.util.Date;
 
 @Component
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class JwtUtil {
 
-    private final RSAKeyUtil rsaKeyUtil;
+    RSAKeyUtil rsaKeyUtil;
 
-    public String generateToken(Users user) throws Exception {
+    public String generateToken(UserDetails userDetails) throws Exception {
         PrivateKey privateKey = rsaKeyUtil.getPrivateKey();
         return Jwts.builder()
-                .setSubject(user.getUsername())
-                .setIssuer("theanh.dev")
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))
-                .signWith(SignatureAlgorithm.RS256, privateKey)
+                .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
 
@@ -48,7 +52,7 @@ public class JwtUtil {
         }
     }
 
-    public boolean isTokenExpired(String token) {
+    private boolean isTokenExpired(String token) {
         try {
             return extractClaims(token).getExpiration().before(new Date());
         } catch (Exception e) {
@@ -56,7 +60,8 @@ public class JwtUtil {
         }
     }
 
-    public boolean validateToken(String token, String username) {
-        return (username.equals(extractUsername(token)) && !isTokenExpired(token));
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }
