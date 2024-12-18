@@ -38,7 +38,13 @@ public class AuthService implements IAuthService{
         if (!authenticated)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
-        var token = jwtUtil.generateToken(user);
+        String token = null;
+
+        try {
+            token = jwtUtil.generateToken(user);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         return AuthResponse.builder()
                 .token(token)

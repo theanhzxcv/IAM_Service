@@ -7,7 +7,7 @@ spring:
   application:
     name: IAM Service
   datasource:
-    url: jdbc:mysql://localhost:3306/iam-service-db
+    url: jdbc:mysql://localhost:3306/iam_service_db
     username: root
     password:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -19,12 +19,8 @@ spring:
       hibernate:
         format_sql: true
 
-jwt:
-  secretKey: "s/beSs9t6Hj9M1uAX1qq6AB1jKQW26HBzY8GZ2ts+bQqP9s7vO4q561zZejMQUgZ"
-
-
 info:
   app:
     name: IAM Service App
-    description: IAM Service with Spring Boot, PostgresSQL và JWT
+    description: IAM Service with Spring Boot, PostgresSQL vï¿½ JWT
     version: 1.0.0

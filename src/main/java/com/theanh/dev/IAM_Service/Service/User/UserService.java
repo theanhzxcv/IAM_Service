@@ -7,6 +7,7 @@ import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
 import com.theanh.dev.IAM_Service.Model.Users;
 import com.theanh.dev.IAM_Service.Repository.UserRepository;
+import com.theanh.dev.IAM_Service.Response.UserResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -43,26 +44,36 @@ public class UserService implements UserDetailsService, IUserService {
     }
 
     @Override
-    public UserDto myProfile() {
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
+    public UserResponse myProfile() {
+        String name = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Users user = userRepository.findByUsername(name)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        return userMapper.toUserDto(user);
+        return userMapper.toUserRespose(user);
     }
 
-//    @Override
-//    public UserDto updateProfile(UserUpdateDto userUpdateDto) {
-//        var context = SecurityContextHolder.getContext();
-//        String name = context.getAuthentication().getName();
-//
-//        Users user = userRepository.findByUsername(name)
-//                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-//
-//        Users updateProfile = userMapper.toUser(userUpdateDto);
-//
-//        return userMapper.toUserDto(updateProfile);
-//    }
+    @Override
+    public UserUpdateDto updateProfile(UserUpdateDto userUpdateDto) {
+        String name = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Users user = userRepository.findByUsername(name)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (!userUpdateDto.getFullname().equals(user.getFullname())) {
+            user.setFullname(userUpdateDto.getFullname());
+        }
+        if (userUpdateDto.getAddress() != null) {
+            user.setAddress(userUpdateDto.getAddress());
+        }
+        if (userUpdateDto.getPhone() != 0) {
+            user.setPhone(userUpdateDto.getPhone());
+        }
+        if (userUpdateDto.getDoB() != null) {
+            user.setDoB(userUpdateDto.getDoB());
+        }
+        Users updateProfile = userRepository.save(user);
+
+        return userMapper.toUserUpdateDto(updateProfile);
+    }
 }
