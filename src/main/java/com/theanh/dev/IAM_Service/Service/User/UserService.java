@@ -1,6 +1,7 @@
 package com.theanh.dev.IAM_Service.Service.User;
 
 import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
+import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
@@ -13,9 +14,12 @@ import com.theanh.dev.IAM_Service.Service.Email.EmailService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.security.Principal;
 
 @Service
 @RequiredArgsConstructor
@@ -101,8 +105,30 @@ public class UserService implements IUserService {
 
     @Override
     public void forgotPassword(String email) {
-
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        String resetToken;
+        try {
+            resetToken = jwtUtil.generateAccessToken(user);
+            emailService.sendResetPasswordEmail(email, resetToken);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    @Override
+    public void resetPassword(ResetPasswordDto resetPasswordDto, String token, String email) {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        jwtUtil.isTokenValid(token, user);
+
+        if (!resetPasswordDto.getNewPassword().equals(resetPasswordDto.getConfirmationPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
+
+        user.setPassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
+
+        userRepository.save(user);
+    }
 }

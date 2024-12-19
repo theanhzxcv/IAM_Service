@@ -1,6 +1,7 @@
 package com.theanh.dev.IAM_Service.Mapper;
 
 import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
+import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
 import com.theanh.dev.IAM_Service.Model.Users;
@@ -20,7 +21,7 @@ public interface UserMapper {
 
     UserUpdateDto toUserUpdateDto(Users user);
 
-    ChangePasswordDto toChangePasswordDto(Users user);
+    ResetPasswordDto toChangePasswordDto(Users user);
 
 
 //    List<UserDto> toUserDtos(Users users);
