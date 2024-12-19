@@ -1,19 +1,29 @@
 package com.theanh.dev.IAM_Service.Service.Auth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.theanh.dev.IAM_Service.Dtos.Auth.AuthDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
+import com.theanh.dev.IAM_Service.Model.InvalidToken;
 import com.theanh.dev.IAM_Service.Model.Users;
+import com.theanh.dev.IAM_Service.Repository.InvalidTokenRepository;
 import com.theanh.dev.IAM_Service.Repository.UserRepository;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
+import com.theanh.dev.IAM_Service.Service.Email.EmailService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -22,11 +32,15 @@ public class AuthService implements IAuthService{
 
     UserRepository userRepository;
 
+    InvalidTokenRepository invalidTokenRepository;
+
     UserMapper userMapper;
 
     PasswordEncoder passwordEncoder;
 
     JwtUtil jwtUtil;
+
+    EmailService emailService;
 
     @Override
     public AuthResponse login(AuthDto authDto) {
@@ -38,22 +52,26 @@ public class AuthService implements IAuthService{
         if (!authenticated)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
-        String token = null;
+        String accessToken = null;
+
+        String refreshToken = null;
 
         try {
-            token = jwtUtil.generateToken(user);
+            accessToken = jwtUtil.generateAccessToken(user);
+            refreshToken = jwtUtil.generateRefreshToken(user);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
         return AuthResponse.builder()
-                .token(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .authenticated(true)
                 .build();
     }
 
     @Override
-    public UserDto register(UserDto userDto) {
+    public String register(UserDto userDto) {
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
@@ -67,6 +85,61 @@ public class AuthService implements IAuthService{
 
         Users saveUser = userRepository.save(register);
 
-        return userMapper.toUserDto(saveUser);
+        emailService.sendRegistrationEmail(userDto.getEmail(), userDto.getPassword(), userDto.getFirstname(), userDto.getLastname());
+
+//        return userMapper.toUserDto(saveUser);
+        return "Registered successfully!";
+    }
+
+    @Override
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String refreshToken;
+        final String userEmail;
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return;
+        }
+
+        refreshToken = authHeader.substring(7);
+        userEmail = jwtUtil.extractEmail(refreshToken);
+
+        if (userEmail != null) {
+            var user = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            if (jwtUtil.isTokenValid(refreshToken, user)) {
+                String accessToken = null;
+                try {
+                    accessToken = jwtUtil.generateAccessToken(user);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                var authResponse = AuthResponse.builder()
+                        .accessToken(accessToken)
+                        .refreshToken(refreshToken)
+                        .authenticated(true)
+                        .build();
+                try {
+                    new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void logout(String invalidToken) {
+        String jti;
+        Date expireTime;
+        try {
+            jti = jwtUtil.extractClaims(invalidToken).getId();
+            expireTime = jwtUtil.extractClaims(invalidToken).getExpiration();
+            invalidTokenRepository.save(InvalidToken.builder()
+                            .id(jti)
+                            .expiredTime(expireTime)
+                            .build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

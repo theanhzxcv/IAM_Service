@@ -1,5 +1,6 @@
 package com.theanh.dev.IAM_Service.Controller;
 
+import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
 import com.theanh.dev.IAM_Service.Response.UserResponse;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -20,13 +23,19 @@ public class UserController {
 
     UserService userService;
 
-    @GetMapping("/myProfile")
+    @GetMapping("/my-profile")
     public ResponseEntity<UserResponse> getMyProfile() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.myProfile());
     }
 
-    @PutMapping("/updateProfile")
+    @PatchMapping("/update-profile")
     public ResponseEntity<UserUpdateDto> updateMyProfile(@RequestBody @Valid UserUpdateDto userUpdateDto) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.updateProfile(userUpdateDto));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto) {
+        userService.changePassword(changePasswordDto);
+        return ResponseEntity.ok("Password changes successfully!");
     }
 }
