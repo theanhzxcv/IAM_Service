@@ -23,19 +23,19 @@ public class UserController {
 
     UserService userService;
 
-    @GetMapping("/myProfile")
+    @GetMapping("/my-profile")
     public ResponseEntity<UserResponse> getMyProfile() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.myProfile());
     }
 
-    @PatchMapping("/updateProfile")
+    @PatchMapping("/update-profile")
     public ResponseEntity<UserUpdateDto> updateMyProfile(@RequestBody @Valid UserUpdateDto userUpdateDto) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.updateProfile(userUpdateDto));
     }
 
-    @PatchMapping("/changePassword")
-    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto, Principal connetedUser) {
-        userService.changePasword(changePasswordDto, connetedUser);
-        return ResponseEntity.status(HttpStatus.OK).build();
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto) {
+        userService.changePassword(changePasswordDto);
+        return ResponseEntity.ok("Password changes successfully!");
     }
 }

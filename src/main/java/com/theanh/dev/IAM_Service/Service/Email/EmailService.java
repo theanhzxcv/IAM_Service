@@ -26,13 +26,22 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendPasswordChangeEmail(String toEmail, String newPassword) {
+    public void sendResetPasswordEmail(String toEmail, String resetLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Reset your password!");
+        message.setText("You forgot your password ? \nClick this link to reset your password: " + resetLink);
+
+        mailSender.send(message);
+    }
+
+    public void sendPasswordChangeEmail(String toEmail, String newPasword) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
         message.setSubject("Password Changed Successfully");
-        message.setText("Your password has been changed successfully. " +
-                "If you did not make this change, please contact support immediately.");
-        message.setText("Your new password: " + newPassword);
+        message.setText("Your password has been successfully changed. " +
+                "\nIf you did not make this change, please contact support immediately." +
+                "\nYour new password: " + newPasword);
 
         mailSender.send(message);
     }
@@ -42,7 +51,7 @@ public class EmailService {
         message.setTo(toEmail);
         message.setSubject("Profile Updated Successfully");
         message.setText("Your profile has been updated successfully. " +
-                "If you did not make this change, please contact support immediately.");
+                "\nIf you did not make this change, please contact support immediately.");
 
         mailSender.send(message);
     }

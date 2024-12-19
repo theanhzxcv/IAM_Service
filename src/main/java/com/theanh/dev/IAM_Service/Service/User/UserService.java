@@ -8,21 +8,14 @@ import com.theanh.dev.IAM_Service.Mapper.UserMapper;
 import com.theanh.dev.IAM_Service.Model.Users;
 import com.theanh.dev.IAM_Service.Repository.UserRepository;
 import com.theanh.dev.IAM_Service.Response.UserResponse;
+import com.theanh.dev.IAM_Service.Security.JwtUtil;
 import com.theanh.dev.IAM_Service.Service.Email.EmailService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.security.Principal;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +29,8 @@ public class UserService implements IUserService {
     UserMapper userMapper;
 
     EmailService emailService;
+
+    JwtUtil jwtUtil;
 
     @Override
     public UserResponse myProfile() {
@@ -77,9 +72,15 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void changePasword(ChangePasswordDto changePasswordDto, Principal connectedUser) {
+    public void changePassword(ChangePasswordDto changePasswordDto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        var user = (Users) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        Users user =  userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (!changePasswordDto.getEmail().equals(user.getEmail())) {
+            throw new AppException(ErrorCode.INCORRECT_EMAIL);
+        }
 
         if (!passwordEncoder.matches(changePasswordDto.getOldPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.WRONG_PASSWORD);
@@ -97,4 +98,11 @@ public class UserService implements IUserService {
 
         userRepository.save(user);
     }
+
+    @Override
+    public void forgotPassword(String email) {
+
+    }
+
+
 }

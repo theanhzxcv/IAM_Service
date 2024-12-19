@@ -6,7 +6,9 @@ import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
+import com.theanh.dev.IAM_Service.Model.InvalidToken;
 import com.theanh.dev.IAM_Service.Model.Users;
+import com.theanh.dev.IAM_Service.Repository.InvalidTokenRepository;
 import com.theanh.dev.IAM_Service.Repository.UserRepository;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
@@ -17,14 +19,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +31,8 @@ import java.io.IOException;
 public class AuthService implements IAuthService{
 
     UserRepository userRepository;
+
+    InvalidTokenRepository invalidTokenRepository;
 
     UserMapper userMapper;
 
@@ -100,7 +101,7 @@ public class AuthService implements IAuthService{
         }
 
         refreshToken = authHeader.substring(7);
-        userEmail = jwtUtil.extractUsername(refreshToken);
+        userEmail = jwtUtil.extractEmail(refreshToken);
 
         if (userEmail != null) {
             var user = userRepository.findByEmail(userEmail)
@@ -115,6 +116,7 @@ public class AuthService implements IAuthService{
                 var authResponse = AuthResponse.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
+                        .authenticated(true)
                         .build();
                 try {
                     new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
@@ -122,6 +124,22 @@ public class AuthService implements IAuthService{
                     throw new RuntimeException(e);
                 }
             }
+        }
+    }
+
+    @Override
+    public void logout(String invalidToken) {
+        String jti;
+        Date expireTime;
+        try {
+            jti = jwtUtil.extractClaims(invalidToken).getId();
+            expireTime = jwtUtil.extractClaims(invalidToken).getExpiration();
+            invalidTokenRepository.save(InvalidToken.builder()
+                            .id(jti)
+                            .expiredTime(expireTime)
+                            .build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

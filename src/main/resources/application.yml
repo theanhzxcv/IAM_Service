@@ -32,6 +32,9 @@ spring:
             enable: true
           timeout: 5000
 
+redis:
+  host: localhost
+  port: 6379
 
 info:
   app:

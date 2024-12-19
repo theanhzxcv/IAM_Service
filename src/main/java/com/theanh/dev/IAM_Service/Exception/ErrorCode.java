@@ -23,8 +23,8 @@ public enum ErrorCode {
     INVALID_DOB("Date of birth must be a past date!", HttpStatus.BAD_REQUEST),
     INVALID_PHONE_NUMBER("Phone number must be 10 digits!", HttpStatus.BAD_REQUEST),
     WRONG_PASSWORD("Wrong password!", HttpStatus.BAD_REQUEST),
-    PASSWORD_NOT_MATCH("Password are not the same!", HttpStatus.BAD_REQUEST)
-    ;
+    PASSWORD_NOT_MATCH("Password are not the same!", HttpStatus.BAD_REQUEST),
+    INCORRECT_EMAIL("The email address you provided is incorrect!", HttpStatus.BAD_REQUEST);
 
     private final String message;
     private final HttpStatus httpStatus;

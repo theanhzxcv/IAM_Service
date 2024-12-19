@@ -12,5 +12,7 @@ public interface IUserService {
 
     UserUpdateDto updateProfile(UserUpdateDto userUpdateDto);
 
-    void changePasword(ChangePasswordDto changePasswordDto, Principal connectedUser);
+    void changePassword(ChangePasswordDto changePasswordDto);
+
+    void forgotPassword(String email);
 }
