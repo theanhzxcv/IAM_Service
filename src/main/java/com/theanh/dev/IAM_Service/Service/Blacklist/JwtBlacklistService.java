@@ -17,15 +17,10 @@ public class JwtBlacklistService {
 
     private RedisTemplate<String, String> redisTemplate;
 
-    // Add JWT to blacklist
-    public void addToBlacklist(String token, long expirationTime) {
-        long ttl = expirationTime - System.currentTimeMillis();
-        if (ttl > 0) {
-            redisTemplate.opsForSet().add(BLACKLIST_KEY, token, String.valueOf(ttl));
-        }
+    public void addToBlacklist(String token) {
+        redisTemplate.opsForSet().add(BLACKLIST_KEY, token);
     }
 
-    // Check if JWT is blacklisted
     public boolean isBlacklisted(String token) {
         return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(BLACKLIST_KEY, token));
     }

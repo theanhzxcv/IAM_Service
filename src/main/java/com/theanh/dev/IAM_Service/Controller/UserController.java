@@ -1,6 +1,7 @@
 package com.theanh.dev.IAM_Service.Controller;
 
 import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
+import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
 import com.theanh.dev.IAM_Service.Response.UserResponse;
@@ -36,6 +37,19 @@ public class UserController {
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto) {
         userService.changePassword(changePasswordDto);
-        return ResponseEntity.ok("Password changes successfully!");
+        return ResponseEntity.status(HttpStatus.OK).body("Password changes successfully!");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> changePassword(@RequestParam String email) {
+        userService.forgotPassword(email);
+        return ResponseEntity.status(HttpStatus.OK).body("Reset password sent!");
+    }
+
+    @PutMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto, @RequestParam String token, @RequestParam String email) {
+        userService.resetPassword(resetPasswordDto, token, email);
+        return ResponseEntity.status(HttpStatus.OK).body("Your password has been reset." +
+                "\nYou can now log in with your new password: " + resetPasswordDto.getNewPassword());
     }
 }

@@ -1,10 +1,16 @@
 package com.theanh.dev.IAM_Service.Service.Email;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,23 +20,41 @@ public class EmailService {
 
     JavaMailSender mailSender;
 
-    public void sendRegistrationEmail(String toEmail, String password, String firstname, String lastname) {
+    public void sendRegistrationEmail(String email, String password, String firstname, String lastname) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(toEmail);
-        message.setSubject("Registration Successful");
-        message.setText("Thank " + lastname + " " + firstname + " for registering!"
-                + "\nYour email: " + toEmail
-                + "\nYour password: " + password
-                + "\nYou can now log in using your credentials.");
+        message.setTo(email);
+        message.setSubject("Register successful!!");
+        message.setText("Thank " + lastname + " " + firstname + "registering! You can now log in using your credentials."
+        + "\nYour email: " + email
+        + "\nYour password: " + password);
 
         mailSender.send(message);
     }
 
-    public void sendResetPasswordEmail(String toEmail, String resetLink) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(toEmail);
-        message.setSubject("Reset your password!");
-        message.setText("You forgot your password ? \nClick this link to reset your password: " + resetLink);
+    public void sendOtpEmail(String email, String otp) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message);
+        mimeMessageHelper.setTo(email);
+        mimeMessageHelper.setSubject("Verify OTP");
+        mimeMessageHelper.setText("""
+        <div>
+          <a href="http://localhost:8080/verify-account?email=%s&otp=%s" target="_blank">Click link to verify</a>
+        </div>
+        """.formatted(email, otp), true);
+
+        mailSender.send(message);
+    }
+
+    public void sendResetPasswordEmail(String email, String token) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message);
+        mimeMessageHelper.setTo(email);
+        mimeMessageHelper.setSubject("Forgot password ?");
+        mimeMessageHelper.setText("""
+        <div>
+          <a href="http://localhost:8081/iam_service/users/reset-password?email=%s&token=%s" target="_blank">Click link to reset your password.</a>
+        </div>
+        """.formatted(email, token), true);
 
         mailSender.send(message);
     }

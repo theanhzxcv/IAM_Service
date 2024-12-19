@@ -1,6 +1,5 @@
 package com.theanh.dev.IAM_Service.Security;
 
-import com.theanh.dev.IAM_Service.Repository.InvalidTokenRepository;
 import com.theanh.dev.IAM_Service.Service.Blacklist.JwtBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

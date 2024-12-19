@@ -6,13 +6,13 @@ import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
-import com.theanh.dev.IAM_Service.Model.InvalidToken;
 import com.theanh.dev.IAM_Service.Model.Users;
-import com.theanh.dev.IAM_Service.Repository.InvalidTokenRepository;
 import com.theanh.dev.IAM_Service.Repository.UserRepository;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
 import com.theanh.dev.IAM_Service.Service.Email.EmailService;
+import com.theanh.dev.IAM_Service.Service.Email.OtpUtil;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
@@ -23,7 +23,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -32,19 +33,19 @@ public class AuthService implements IAuthService{
 
     UserRepository userRepository;
 
-    InvalidTokenRepository invalidTokenRepository;
-
     UserMapper userMapper;
 
     PasswordEncoder passwordEncoder;
 
     JwtUtil jwtUtil;
 
+    OtpUtil otpUtil;
+
     EmailService emailService;
 
     @Override
     public AuthResponse login(AuthDto authDto) {
-        var user = userRepository.findByEmail(authDto.getEmail())
+        Users user = userRepository.findByEmail(authDto.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         boolean authenticated = passwordEncoder.matches(authDto.getPassword(), user.getPassword());
@@ -52,9 +53,15 @@ public class AuthService implements IAuthService{
         if (!authenticated)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
-        String accessToken = null;
+//        try {
+//            emailService.sendOtpEmail(authDto.getEmail(), otpUtil.generateOtp());
+//        } catch (MessagingException e) {
+//            throw new RuntimeException(e);
+//        }
 
-        String refreshToken = null;
+        String accessToken;
+
+        String refreshToken;
 
         try {
             accessToken = jwtUtil.generateAccessToken(user);
@@ -87,18 +94,17 @@ public class AuthService implements IAuthService{
 
         emailService.sendRegistrationEmail(userDto.getEmail(), userDto.getPassword(), userDto.getFirstname(), userDto.getLastname());
 
-//        return userMapper.toUserDto(saveUser);
         return "Registered successfully!";
     }
 
     @Override
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public AuthResponse refreshToken(HttpServletRequest request, HttpServletResponse response) {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String refreshToken;
         final String userEmail;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
-        }
+        String accessToken = "";
+        if (authHeader == null || !authHeader.startsWith("Bearer "))
+            throw new RuntimeException("...");
 
         refreshToken = authHeader.substring(7);
         userEmail = jwtUtil.extractEmail(refreshToken);
@@ -107,39 +113,31 @@ public class AuthService implements IAuthService{
             var user = userRepository.findByEmail(userEmail)
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
             if (jwtUtil.isTokenValid(refreshToken, user)) {
-                String accessToken = null;
                 try {
                     accessToken = jwtUtil.generateAccessToken(user);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-                var authResponse = AuthResponse.builder()
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
-                        .authenticated(true)
-                        .build();
-                try {
-                    new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
             }
         }
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .authenticated(true)
+                .build();
     }
 
-    @Override
-    public void logout(String invalidToken) {
-        String jti;
-        Date expireTime;
-        try {
-            jti = jwtUtil.extractClaims(invalidToken).getId();
-            expireTime = jwtUtil.extractClaims(invalidToken).getExpiration();
-            invalidTokenRepository.save(InvalidToken.builder()
-                            .id(jti)
-                            .expiredTime(expireTime)
-                            .build());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    @Override
+//    public AuthResponse verifyAccount(String email, String otp) {
+//        Users user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+//
+//        if (user.getOtp().equals(otp) && Duration.between(user.getOtpGeneratedTime(),
+//                LocalDateTime.now()).getSeconds() < (1 * 60)) {
+//            user.setActive(true);
+//            userRepository.save(user);
+//            return "OTP verified you can login";
+//        }
+//        return "Please regenerate otp and try again";
+//    }
 }
