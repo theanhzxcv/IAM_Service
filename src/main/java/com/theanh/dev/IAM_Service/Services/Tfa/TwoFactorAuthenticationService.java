@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Service.Tfa;
+package com.theanh.dev.IAM_Service.Services.Tfa;
 
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;

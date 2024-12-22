@@ -2,7 +2,7 @@ package com.theanh.dev.IAM_Service.Security;
 
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
-import com.theanh.dev.IAM_Service.Service.Blacklist.JwtBlacklistService;
+import com.theanh.dev.IAM_Service.Services.Blacklist.JwtBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +19,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.security.sasl.AuthenticationException;
 import java.io.IOException;
 
 @Component
@@ -52,8 +51,7 @@ public class JwtFilter extends OncePerRequestFilter {
         final String userEmail = jwtUtil.extractEmail(token);
         if (userEmail == null || SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
-
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            return;
         }
 
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);

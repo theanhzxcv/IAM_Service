@@ -1,10 +1,7 @@
-package com.theanh.dev.IAM_Service.Service.Email;
+package com.theanh.dev.IAM_Service.Services.Email;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -52,7 +49,7 @@ public class EmailService {
         mimeMessageHelper.setSubject("Forgot password ?");
         mimeMessageHelper.setText("""
         <div>
-          <a href="http://localhost:8081/iam_service/users/reset-password?email=%s&token=%s" target="_blank">Click link to reset your password.</a>
+          <a href="http://localhost:8081/iam/users/reset-password?email=%s&token=%s" target="_blank">Click link to reset your password.</a>
         </div>
         """.formatted(email, token), true);
 

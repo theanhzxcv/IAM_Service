@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Controller;
+package com.theanh.dev.IAM_Service.Controllers;
 
 import com.theanh.dev.IAM_Service.Dtos.Auth.AuthDto;
 import com.theanh.dev.IAM_Service.Dtos.Auth.VerificationDto;
@@ -6,8 +6,8 @@ import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Response.ApiResponse;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
-import com.theanh.dev.IAM_Service.Service.Auth.AuthService;
-import com.theanh.dev.IAM_Service.Service.Blacklist.JwtBlacklistService;
+import com.theanh.dev.IAM_Service.Services.Auth.AuthService;
+import com.theanh.dev.IAM_Service.Services.Blacklist.JwtBlacklistService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -61,9 +61,10 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         ApiResponse<AuthResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setDetails(authService.refreshToken(request, response));
+
         apiResponse.setStatus("Success");
         apiResponse.setMessage("Valid refresh token");
-        apiResponse.setDetails(authService.refreshToken(request, response));
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 

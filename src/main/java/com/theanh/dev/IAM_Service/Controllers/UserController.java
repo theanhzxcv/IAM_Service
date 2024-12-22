@@ -1,12 +1,11 @@
-package com.theanh.dev.IAM_Service.Controller;
+package com.theanh.dev.IAM_Service.Controllers;
 
 import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
-import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
 import com.theanh.dev.IAM_Service.Response.ApiResponse;
 import com.theanh.dev.IAM_Service.Response.UserResponse;
-import com.theanh.dev.IAM_Service.Service.User.UserService;
+import com.theanh.dev.IAM_Service.Services.User.UserService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.security.Principal;
-
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/users")
 public class UserController {
-
     UserService userService;
 
     @GetMapping("/my-profile")
@@ -72,7 +68,10 @@ public class UserController {
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto, @RequestParam String token, @RequestParam String email) {
+    public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto,
+                                                             @RequestParam String token,
+                                                             @RequestParam String email
+    ) {
         ApiResponse<String> apiResponse = new ApiResponse<>();
         apiResponse.setStatus("Success");
         apiResponse.setMessage("Password reset");

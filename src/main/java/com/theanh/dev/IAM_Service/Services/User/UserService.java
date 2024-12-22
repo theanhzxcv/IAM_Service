@@ -1,23 +1,20 @@
-package com.theanh.dev.IAM_Service.Service.User;
+package com.theanh.dev.IAM_Service.Services.User;
 
 import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
-import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
-import com.theanh.dev.IAM_Service.Model.Users;
-import com.theanh.dev.IAM_Service.Repository.UserRepository;
+import com.theanh.dev.IAM_Service.Models.Users;
+import com.theanh.dev.IAM_Service.Repositories.UserRepository;
 import com.theanh.dev.IAM_Service.Response.UserResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
-import com.theanh.dev.IAM_Service.Service.Email.EmailService;
+import com.theanh.dev.IAM_Service.Services.Email.EmailService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +23,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Principal;
 import java.util.UUID;
 
 @Service
@@ -180,7 +176,7 @@ public class UserService implements IUserService {
             user.setPassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
             userRepository.save(user);
             return "Your password has been reset" +
-            "\nYou can now log in with your new password: " + resetPasswordDto.getNewPassword();
+            "\nYou can now log in with your new password";
         } catch (Exception e) {
             throw new AppException(ErrorCode.SESSION_EXPIRED);
         }

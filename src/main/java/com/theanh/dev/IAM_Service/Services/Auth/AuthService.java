@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Service.Auth;
+package com.theanh.dev.IAM_Service.Services.Auth;
 
 import com.theanh.dev.IAM_Service.Dtos.Auth.AuthDto;
 import com.theanh.dev.IAM_Service.Dtos.Auth.VerificationDto;
@@ -6,25 +6,21 @@ import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
-import com.theanh.dev.IAM_Service.Model.UserActivity;
-import com.theanh.dev.IAM_Service.Model.Users;
-import com.theanh.dev.IAM_Service.Repository.UserActivityRepository;
-import com.theanh.dev.IAM_Service.Repository.UserRepository;
+import com.theanh.dev.IAM_Service.Models.UserActivity;
+import com.theanh.dev.IAM_Service.Models.Users;
+import com.theanh.dev.IAM_Service.Repositories.UserActivityRepository;
+import com.theanh.dev.IAM_Service.Repositories.UserRepository;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
-import com.theanh.dev.IAM_Service.Service.Email.EmailService;
-import com.theanh.dev.IAM_Service.Service.Tfa.TwoFactorAuthenticationService;
-import jakarta.persistence.EntityNotFoundException;
+import com.theanh.dev.IAM_Service.Services.Email.EmailService;
+import com.theanh.dev.IAM_Service.Services.Tfa.TwoFactorAuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +36,6 @@ public class AuthService implements IAuthService{
     EmailService emailService;
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
-//    UserActivity userActivity;
     UserActivityRepository userActivityRepository;
     TwoFactorAuthenticationService tfaService;
 

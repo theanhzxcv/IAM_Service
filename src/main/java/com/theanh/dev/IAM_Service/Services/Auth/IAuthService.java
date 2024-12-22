@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Service.Auth;
+package com.theanh.dev.IAM_Service.Services.Auth;
 
 import com.theanh.dev.IAM_Service.Dtos.Auth.AuthDto;
 import com.theanh.dev.IAM_Service.Dtos.Auth.VerificationDto;

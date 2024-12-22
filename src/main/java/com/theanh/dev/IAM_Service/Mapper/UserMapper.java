@@ -4,7 +4,7 @@ import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
-import com.theanh.dev.IAM_Service.Model.Users;
+import com.theanh.dev.IAM_Service.Models.Users;
 import com.theanh.dev.IAM_Service.Response.UserResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

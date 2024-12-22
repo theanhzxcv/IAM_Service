@@ -36,10 +36,10 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: anhntdev089@gmail.com
-    password: icoo pdgx gpzp ttwj
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: cb9b9078d8efbf
+    password: 472c361eaa061d
     protocol: smtp
     properties:
       mail:

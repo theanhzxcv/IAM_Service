@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Model;
+package com.theanh.dev.IAM_Service.Models;
 
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,14 +1,12 @@
-package com.theanh.dev.IAM_Service.Model;
+package com.theanh.dev.IAM_Service.Models;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 @Entity
 @Getter

@@ -2,7 +2,7 @@ package com.theanh.dev.IAM_Service.Config;
 
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
-import com.theanh.dev.IAM_Service.Repository.UserRepository;
+import com.theanh.dev.IAM_Service.Repositories.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

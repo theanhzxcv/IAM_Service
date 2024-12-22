@@ -1,12 +1,10 @@
-package com.theanh.dev.IAM_Service.Service.User;
+package com.theanh.dev.IAM_Service.Services.User;
 
 import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
 import com.theanh.dev.IAM_Service.Response.UserResponse;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.security.Principal;
 
 public interface IUserService {
 
