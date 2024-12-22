@@ -31,16 +31,16 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendOtpEmail(String email, String otp) throws MessagingException {
+    public void sendVerifyOtpEmail(String email) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message);
         mimeMessageHelper.setTo(email);
         mimeMessageHelper.setSubject("Verify OTP");
         mimeMessageHelper.setText("""
         <div>
-          <a href="http://localhost:8080/verify-account?email=%s&otp=%s" target="_blank">Click link to verify</a>
+          <a href="http://localhost:8081/iams/auth/verify-account?email=%s" target="_blank">Click link to verify</a>
         </div>
-        """.formatted(email, otp), true);
+        """.formatted(email), true);
 
         mailSender.send(message);
     }

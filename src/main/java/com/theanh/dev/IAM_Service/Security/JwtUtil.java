@@ -1,6 +1,9 @@
 package com.theanh.dev.IAM_Service.Security;
 
+import com.theanh.dev.IAM_Service.Exception.AppException;
+import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.AccessLevel;
@@ -20,45 +23,46 @@ import java.util.UUID;
 public class JwtUtil {
 
     RSAKeyUtil rsaKeyUtil;
+    static long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 30;
+    static long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 5;
 
-    public String generateAccessToken(UserDetails userDetails) throws Exception {
+    public String generateToken(UserDetails userDetails, long expirationTime) throws Exception {
         PrivateKey privateKey = rsaKeyUtil.getPrivateKey();
-        long accessTokenExpiration = 1800000;
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .setId(UUID.randomUUID().toString())
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
 
+    public String generateAccessToken(UserDetails userDetails) throws Exception {
+        return generateToken(userDetails, ACCESS_TOKEN_EXPIRATION);
+    }
+
     public String generateRefreshToken(UserDetails userDetails) throws Exception {
-        PrivateKey privateKey = rsaKeyUtil.getPrivateKey();
-        long refreshTokenExpiration = 18000000;
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
-                .signWith(privateKey, SignatureAlgorithm.RS256)
-                .compact();
+        return generateToken(userDetails, REFRESH_TOKEN_EXPIRATION);
     }
 
     public Claims extractClaims(String token) throws Exception {
-        PublicKey publicKey = rsaKeyUtil.getPublicKey();
-
-        return Jwts.parserBuilder()
-                .setSigningKey(publicKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            PublicKey publicKey = rsaKeyUtil.getPublicKey();
+            return Jwts.parserBuilder()
+                    .setSigningKey(publicKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public String extractEmail(String token) {
         try {
             return extractClaims(token).getSubject();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
 
@@ -66,7 +70,7 @@ public class JwtUtil {
         try {
             return extractClaims(token).getExpiration().getTime();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
 
@@ -74,12 +78,12 @@ public class JwtUtil {
         try {
             return extractClaims(token).getExpiration().before(new Date());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractEmail(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        final String email = extractEmail(token);
+        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }

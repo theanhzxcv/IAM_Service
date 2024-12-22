@@ -4,6 +4,7 @@ import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
+import com.theanh.dev.IAM_Service.Response.ApiResponse;
 import com.theanh.dev.IAM_Service.Response.UserResponse;
 import com.theanh.dev.IAM_Service.Service.User.UserService;
 import jakarta.validation.Valid;
@@ -25,25 +26,39 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/my-profile")
-    public ResponseEntity<UserResponse> getMyProfile() {
-        return ResponseEntity.status(HttpStatus.OK).body(userService.myProfile());
+    public ResponseEntity<ApiResponse<UserResponse>> getMyProfile() {
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus("success");
+        apiResponse.setDetails(userService.myProfile());
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
     @PatchMapping("/update-profile")
-    public ResponseEntity<UserUpdateDto> updateMyProfile(@RequestBody @Valid UserUpdateDto userUpdateDto) {
-        return ResponseEntity.status(HttpStatus.OK).body(userService.updateProfile(userUpdateDto));
+    public ResponseEntity<ApiResponse<UserUpdateDto>> updateMyProfile(@RequestBody @Valid UserUpdateDto userUpdateDto) {
+        ApiResponse<UserUpdateDto> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus("success");
+        apiResponse.setDetails(userService.updateProfile(userUpdateDto));
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto) {
-        userService.changePassword(changePasswordDto);
-        return ResponseEntity.status(HttpStatus.OK).body("Password changes successfully!");
+    @PatchMapping("/change-password")
+    public ResponseEntity<ApiResponse<?>> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto) {
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus("success");
+        apiResponse.setMessage("Password changes successfully!");
+        apiResponse.setDetails(userService.changePassword(changePasswordDto));
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> changePassword(@RequestParam String email) {
-        userService.forgotPassword(email);
-        return ResponseEntity.status(HttpStatus.OK).body("Reset password sent!");
+    public ResponseEntity<ApiResponse<?>> changePassword(@RequestParam String email) {
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus("success");
+        apiResponse.setMessage("Forgot password ?");
+        apiResponse.setDetails(userService.forgotPassword(email));
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
     @PutMapping("/reset-password")

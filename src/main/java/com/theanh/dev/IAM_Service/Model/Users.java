@@ -31,6 +31,10 @@ public class Users implements UserDetails {
     private int phone;
     private Date doB;
 
+    private String secret;
+
+//    private String image;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;

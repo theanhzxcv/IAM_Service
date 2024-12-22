@@ -26,7 +26,7 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizationManagerRequest ->
                         authorizationManagerRequest
-                                .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "users/forgot-password").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "auth/verify", "users/forgot-password").permitAll()
                                 .anyRequest().authenticated())
 
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

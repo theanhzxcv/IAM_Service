@@ -10,19 +10,18 @@ import java.util.Date;
 @Data
 public class UserUpdateDto {
 
-    @NotBlank
+    @NotBlank(message = "FIELD_REQUIRED")
     private String firstname;
 
-    @NotBlank
+    @NotBlank(message = "FIELD_REQUIRED")
     private String lastname;
 
-    @NotBlank
+    @NotBlank(message = "FIELD_REQUIRED")
     private String address;
 
-    @NotNull
+    @NotNull(message = "FIELD_REQUIRED")
     private int phone;
 
-    @NotNull
-    @Past(message = "INVALID_DOB")
+    @NotNull(message = "FIELD_REQUIRED")
     private Date doB;
 }

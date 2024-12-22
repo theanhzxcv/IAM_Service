@@ -13,7 +13,7 @@ import org.mapstruct.Mapping;
 public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
-    Users toUser (UserDto userDto);
+    Users toUser(UserDto userDto);
 
     UserDto toUserDto(Users user);
 
@@ -21,7 +21,11 @@ public interface UserMapper {
 
     UserUpdateDto toUserUpdateDto(Users user);
 
-    ResetPasswordDto toChangePasswordDto(Users user);
+    @Mapping(target = "newPassword", ignore = true)
+    @Mapping(target = "confirmationPassword", ignore = true)
+    ResetPasswordDto toResetPasswordDto(Users user);
+
+    ChangePasswordDto toChangePasswordDto(Users user);
 
 
 //    List<UserDto> toUserDtos(Users users);

@@ -15,24 +15,27 @@ import java.util.Date;
 @AllArgsConstructor
 public class UserDto {
 
-    @Size(min = 3, max = 20, message = "INVALID_NAME")
+    @NotBlank(message = "FIELD_REQUIRED")
     private String firstname;
 
-    @Size(min = 3, max = 20, message = "INVALID_NAME")
+    @NotBlank(message = "FIELD_REQUIRED")
     private String lastname;
 
+    @NotBlank(message = "FIELD_REQUIRED")
     @Email(message = "INVALID_EMAIL")
     private String email;
 
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[@#$%^&+=_]).{8,}$", message = "INVALID_PASSWORD")
+    @NotBlank(message = "FIELD_REQUIRED")
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[@#$%^&+=_]).{8,}$", message = "INSECURE_PASSWORD")
     private String password;
 
+    @NotBlank(message = "FIELD_REQUIRED")
     private String address;
 
-    @NotNull
+    @NotNull(message = "FIELD_REQUIRED")
     private int phone;
 
-    @NotNull
-    @Past(message = "INVALID_DOB")
+    @NotNull(message = "FIELD_REQUIRED")
     private Date doB;
+
 }
