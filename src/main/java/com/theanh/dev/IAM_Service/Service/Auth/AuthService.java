@@ -6,7 +6,9 @@ import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
+import com.theanh.dev.IAM_Service.Model.UserActivity;
 import com.theanh.dev.IAM_Service.Model.Users;
+import com.theanh.dev.IAM_Service.Repository.UserActivityRepository;
 import com.theanh.dev.IAM_Service.Repository.UserRepository;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
@@ -16,6 +18,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 @Slf4j
 @Service
@@ -35,6 +40,8 @@ public class AuthService implements IAuthService{
     EmailService emailService;
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
+//    UserActivity userActivity;
+    UserActivityRepository userActivityRepository;
     TwoFactorAuthenticationService tfaService;
 
     @Override
@@ -47,6 +54,13 @@ public class AuthService implements IAuthService{
         }
 
         try {
+            UserActivity userActivity = UserActivity
+                    .builder()
+                    .email(user.getEmail())
+                    .activity("Log in")
+                    .timestamp(new Date())
+                    .build();
+            userActivityRepository.save(userActivity);
             return "Log in successfully. Please verify to continue!";
         } catch (Exception e) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -59,9 +73,9 @@ public class AuthService implements IAuthService{
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
         if (!tfaService.verifyCode(user.getSecret(), verificationDto.getOtp())) {
-
             throw new AppException(ErrorCode.INVALID_OTP);
         }
+
         try {
             String accessToken = jwtUtil.generateAccessToken(user);
             String refreshToken = jwtUtil.generateRefreshToken(user);
@@ -90,7 +104,13 @@ public class AuthService implements IAuthService{
             Users register = userMapper.toUser(userDto);
             register.setPassword(passwordEncoder.encode(userDto.getPassword()));
             register.setSecret(tfaService.generateSecretKey());
-            log.info(register.getSecret());
+            UserActivity userActivity = UserActivity
+                    .builder()
+                    .email(register.getEmail())
+                    .activity("Log in")
+                    .timestamp(new Date())
+                    .build();
+            userActivityRepository.save(userActivity);
             userRepository.save(register);
             emailService.sendRegistrationEmail(userDto.getEmail(), userDto.getPassword(), userDto.getFirstname(), userDto.getLastname());
             return "Register successfully!";

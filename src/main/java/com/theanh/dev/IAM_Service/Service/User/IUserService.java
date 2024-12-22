@@ -14,11 +14,11 @@ public interface IUserService {
 
     UserUpdateDto updateProfile(UserUpdateDto userUpdateDto);
 
-    void uploadImage(MultipartFile image, Principal connectedUser);
+    String uploadImage(MultipartFile image);
 
     String changePassword(ChangePasswordDto changePasswordDto);
 
     String forgotPassword(String email);
 
-    void resetPassword(ResetPasswordDto resetPasswordDto, String token, String email);
+    String resetPassword(ResetPasswordDto resetPasswordDto, String token, String email);
 }

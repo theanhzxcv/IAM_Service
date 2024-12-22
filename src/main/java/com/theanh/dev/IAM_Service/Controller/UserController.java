@@ -14,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 
@@ -41,11 +42,20 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PostMapping("/upload-avatar")
+    public ResponseEntity<ApiResponse<?>> uploadAvatar(@RequestBody MultipartFile image) {
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus("success");
+        apiResponse.setMessage("Uploaded image");
+        apiResponse.setDetails(userService.uploadImage(image));
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
     @PatchMapping("/change-password")
     public ResponseEntity<ApiResponse<?>> changePassword(@RequestBody @Valid ChangePasswordDto changePasswordDto) {
         ApiResponse<String> apiResponse = new ApiResponse<>();
         apiResponse.setStatus("success");
-        apiResponse.setMessage("Password changes successfully!");
+        apiResponse.setMessage("Password changed");
         apiResponse.setDetails(userService.changePassword(changePasswordDto));
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
@@ -55,16 +65,18 @@ public class UserController {
     public ResponseEntity<ApiResponse<?>> changePassword(@RequestParam String email) {
         ApiResponse<String> apiResponse = new ApiResponse<>();
         apiResponse.setStatus("success");
-        apiResponse.setMessage("Forgot password ?");
+        apiResponse.setMessage("Forgot password");
         apiResponse.setDetails(userService.forgotPassword(email));
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto, @RequestParam String token, @RequestParam String email) {
-        userService.resetPassword(resetPasswordDto, token, email);
-        return ResponseEntity.status(HttpStatus.OK).body("Your password has been reset." +
-                "\nYou can now log in with your new password: " + resetPasswordDto.getNewPassword());
+    public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto, @RequestParam String token, @RequestParam String email) {
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus("Success");
+        apiResponse.setMessage("Password reset");
+        apiResponse.setDetails(userService.resetPassword(resetPasswordDto, token, email));
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 }

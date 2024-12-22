@@ -15,13 +15,19 @@ import com.theanh.dev.IAM_Service.Service.Email.EmailService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -85,8 +91,29 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void uploadImage(MultipartFile image, Principal connectedUser) {
+    public String uploadImage(MultipartFile image) {
+        String email = getCurrentUserEmail();
+        Users user =  userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
+        if (image.isEmpty()) {
+            return "No file selected.";
+        }
+
+        try {
+            String UPLOAD_DIR = "src/main/resources/image/";
+            String filename = UUID.randomUUID() + "-" + image.getOriginalFilename();
+            Path filepath = Paths.get(UPLOAD_DIR + filename);
+            Files.createDirectories(filepath.getParent());
+            Files.write(filepath, image.getBytes());
+
+            String avatarUrl = filepath.toString();
+            user.setImageUrl(avatarUrl);
+            userRepository.save(user);
+            return "Avatar uploaded successfully: " + avatarUrl;
+        } catch (IOException e) {
+            return "Failed to upload avatar.";
+        }
     }
 
     @Override
@@ -119,10 +146,7 @@ public class UserService implements IUserService {
         } catch (Exception e) {
             throw new AppException(ErrorCode.SESSION_EXPIRED);
         }
-
-
-        return "Password changed";
-//        return userMapper.toChangePasswordDto(user);
+        return "Password changed successfully.";
     }
 
     @Override
@@ -141,7 +165,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void resetPassword(ResetPasswordDto resetPasswordDto, String token, String email) {
+    public String resetPassword(ResetPasswordDto resetPasswordDto, String token, String email) {
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
@@ -155,10 +179,11 @@ public class UserService implements IUserService {
         try {
             user.setPassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
             userRepository.save(user);
+            return "Your password has been reset" +
+            "\nYou can now log in with your new password: " + resetPasswordDto.getNewPassword();
         } catch (Exception e) {
             throw new AppException(ErrorCode.SESSION_EXPIRED);
         }
 
-//        return userMapper.toResetPasswordDto(user);
     }
 }
