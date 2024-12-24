@@ -3,10 +3,13 @@ package com.theanh.dev.IAM_Service.Models;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -27,15 +30,26 @@ public class Users implements UserDetails {
     private String password;
 
     private String address;
+    private String imageUrl;
     private int phone;
     private Date doB;
 
     private String secret;
-    private String imageUrl;
+//    private boolean is2faEnable = false;
+    private boolean isVerified = false;
+
+    private boolean isDeleted = false;
+    private boolean isBanned = false;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    private Set<Roles> roles;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        // Convert the Set<Roles> to a collection of GrantedAuthority objects
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                .collect(Collectors.toSet());
     }
 
     @Override

@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -15,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(securedEnabled = true)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -26,7 +28,10 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizationManagerRequest ->
                         authorizationManagerRequest
-                                .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login", "auth/verify", "users/forgot-password").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/verify", "/api/users/forgot-password").permitAll()
+                                .requestMatchers(HttpMethod.GET,  "/api/admin").permitAll()
+                                .requestMatchers(HttpMethod.PUT,  "/api/admin").permitAll()
+//                                .requestMatchers(HttpMethod.GET, "/api/users/my-profile").hasRole("ADMIN")
                                 .anyRequest().authenticated())
 
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

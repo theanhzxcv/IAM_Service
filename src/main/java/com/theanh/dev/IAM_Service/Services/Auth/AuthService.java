@@ -1,13 +1,14 @@
 package com.theanh.dev.IAM_Service.Services.Auth;
 
-import com.theanh.dev.IAM_Service.Dtos.Auth.AuthDto;
+import com.theanh.dev.IAM_Service.Dtos.Auth.LoginDto;
+import com.theanh.dev.IAM_Service.Dtos.Auth.RegistrationDto;
 import com.theanh.dev.IAM_Service.Dtos.Auth.VerificationDto;
-import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
 import com.theanh.dev.IAM_Service.Models.UserActivity;
 import com.theanh.dev.IAM_Service.Models.Users;
+import com.theanh.dev.IAM_Service.Repositories.RoleRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserActivityRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserRepository;
 import com.theanh.dev.IAM_Service.Response.AuthResponse;
@@ -19,51 +20,74 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AuthService implements IAuthService{
+public class AuthService implements IAuthService {
     JwtUtil jwtUtil;
     UserMapper userMapper;
     EmailService emailService;
     UserRepository userRepository;
+    RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     UserActivityRepository userActivityRepository;
     TwoFactorAuthenticationService tfaService;
 
-    @Override
-    public String login(AuthDto authDto) {
-        Users user = userRepository.findByEmail(authDto.getEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
-
-        if (!passwordEncoder.matches(authDto.getPassword(), user.getPassword())) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
         }
-
-        try {
-            UserActivity userActivity = UserActivity
-                    .builder()
-                    .email(user.getEmail())
-                    .activity("Log in")
-                    .timestamp(new Date())
-                    .build();
-            userActivityRepository.save(userActivity);
-            return "Log in successfully. Please verify to continue!";
-        } catch (Exception e) {
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
         }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
     }
 
     @Override
-    public AuthResponse verifyAccount(VerificationDto verificationDto) {
+    public String login(LoginDto loginDto) {
+        Users user = userRepository.findByEmail(loginDto.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
+
+        if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+//        if (!user.is2faEnable()) {
+//
+//        }
+
+        try {
+
+            user.setVerified(false);
+            userRepository.save(user);
+            return "Log in successfully. Please verify to continue!";
+//            String accessToken = jwtUtil.generateAccessToken(user);
+//            String refreshToken = jwtUtil.generateRefreshToken(user);
+//
+//            return AuthResponse.builder()
+//                    .accessToken(accessToken)
+//                    .refreshToken(refreshToken)
+//                    .authenticated(true)
+//                    .build();
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+
+
+    }
+
+    @Override
+    public AuthResponse verifyAccount(VerificationDto verificationDto, HttpServletRequest request) {
         Users user = userRepository.findByEmail(verificationDto.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
@@ -71,10 +95,28 @@ public class AuthService implements IAuthService{
             throw new AppException(ErrorCode.INVALID_OTP);
         }
 
+        if (user.isVerified()) {
+            throw new RuntimeException("This account has been verified");
+        }
+
         try {
             String accessToken = jwtUtil.generateAccessToken(user);
             String refreshToken = jwtUtil.generateRefreshToken(user);
+            String clientIp = getClientIp(request);
+            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
+                clientIp = "127.0.0.1";
+            }
+            UserActivity userActivity = UserActivity
+                    .builder()
+                    .ip(clientIp)
+                    .email(user.getEmail())
+                    .activity("Log in")
+                    .timestamp(new Date())
+                    .build();
+            userActivityRepository.save(userActivity);
 
+            user.setVerified(true);
+            userRepository.save(user);
             return AuthResponse.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
@@ -86,28 +128,36 @@ public class AuthService implements IAuthService{
     }
 
     @Override
-    public String register(UserDto userDto) {
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
+    public String register(RegistrationDto registrationDto) {
+        if (userRepository.findByEmail(registrationDto.getEmail()).isPresent()) {
             throw new AppException(ErrorCode.EXISTED_USER);
         }
 
-        if (userDto.getEmail() == null || userDto.getPassword() == null){
+        if (registrationDto.getEmail() == null || registrationDto.getPassword() == null) {
             throw new AppException(ErrorCode.FIELD_REQUIRED);
         }
 
         try {
-            Users register = userMapper.toUser(userDto);
-            register.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            Users register = userMapper.toUser(registrationDto);
+            register.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
             register.setSecret(tfaService.generateSecretKey());
-            UserActivity userActivity = UserActivity
-                    .builder()
-                    .email(register.getEmail())
-                    .activity("Log in")
-                    .timestamp(new Date())
-                    .build();
-            userActivityRepository.save(userActivity);
+
+//            String clientIp = getClientIp(request);
+//            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
+//                clientIp = "127.0.0.1";
+//            }
+//            UserActivity userActivity = UserActivity
+//                    .builder()
+//                    .ip(clientIp)
+//                    .email(user.getEmail())
+//                    .activity("Log in")
+//                    .timestamp(new Date())
+//                    .build();
+//            userActivityRepository.save(userActivity);
+//            var roles = roleRepository.findAllById(userDto.getRoles());
+//            register.setRoles("USER");
             userRepository.save(register);
-            emailService.sendRegistrationEmail(userDto.getEmail(), userDto.getPassword(), userDto.getFirstname(), userDto.getLastname());
+            emailService.sendRegistrationEmail(registrationDto.getEmail(), registrationDto.getPassword(), registrationDto.getFirstname(), registrationDto.getLastname());
             return "Register successfully!";
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -146,6 +196,10 @@ public class AuthService implements IAuthService{
         } catch (Exception e) {
             throw new RuntimeException("Error happened, please try again.");
         }
+    }
+
+    public void logout(HttpServletRequest request) {
+
     }
 
 }

@@ -1,19 +1,13 @@
-package com.theanh.dev.IAM_Service.Dtos.User;
+package com.theanh.dev.IAM_Service.Dtos.Admin;
 
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.Date;
+import java.util.Set;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDto {
+public class UserUpdateDto {
 
     @NotBlank(message = "FIELD_REQUIRED")
     private String firstname;
@@ -32,10 +26,17 @@ public class UserDto {
     @NotBlank(message = "FIELD_REQUIRED")
     private String address;
 
+    private String imageUrl;
+
     @NotNull(message = "FIELD_REQUIRED")
     private int phone;
 
     @NotNull(message = "FIELD_REQUIRED")
     private Date doB;
 
+    private Set<String> roles;
+
+    private boolean isDeleted;
+
+    private boolean isBanned;
 }

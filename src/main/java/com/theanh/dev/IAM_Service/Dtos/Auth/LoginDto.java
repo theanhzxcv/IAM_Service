@@ -8,13 +8,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthDto {
+public class LoginDto {
 
     @NotBlank(message = "FIELD_REQUIRED")
     @Email(message = "INVALID_EMAIL")

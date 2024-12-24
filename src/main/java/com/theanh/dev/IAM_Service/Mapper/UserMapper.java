@@ -1,32 +1,33 @@
 package com.theanh.dev.IAM_Service.Mapper;
 
-import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
-import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
-import com.theanh.dev.IAM_Service.Dtos.User.UserDto;
-import com.theanh.dev.IAM_Service.Dtos.User.UserUpdateDto;
+import com.theanh.dev.IAM_Service.Dtos.Admin.UserUpdateDto;
+import com.theanh.dev.IAM_Service.Dtos.Auth.RegistrationDto;
+import com.theanh.dev.IAM_Service.Dtos.User.*;
 import com.theanh.dev.IAM_Service.Models.Users;
+import com.theanh.dev.IAM_Service.Response.Admin.ShowProfileResponse;
 import com.theanh.dev.IAM_Service.Response.UserResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
+    @Mapping(target = "secret", ignore = true)
     @Mapping(target = "id", ignore = true)
-    Users toUser(UserDto userDto);
-
-    UserDto toUserDto(Users user);
+    @Mapping(target = "roles", ignore = true)
+    Users toUser(RegistrationDto registrationDto);
 
     UserResponse toUserResponse(Users user);
 
-    UserUpdateDto toUserUpdateDto(Users user);
+    ShowProfileResponse toShowProfile(Users user);
+
+    UpdateProfileDto toUpdateProfileDto(Users user);
 
     @Mapping(target = "newPassword", ignore = true)
     @Mapping(target = "confirmationPassword", ignore = true)
     ResetPasswordDto toResetPasswordDto(Users user);
 
-    ChangePasswordDto toChangePasswordDto(Users user);
-
-
-//    List<UserDto> toUserDtos(Users users);
+    @Mapping(target = "roles", ignore = true)
+    void updateUser(@MappingTarget Users user, UserUpdateDto userUpdateDto);
 }

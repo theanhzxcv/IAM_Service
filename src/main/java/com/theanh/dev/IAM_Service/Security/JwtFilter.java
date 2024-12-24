@@ -65,6 +65,27 @@ public class JwtFilter extends OncePerRequestFilter {
             );
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
+        logSecurityContextDetails();
         filterChain.doFilter(request, response);
     }
+
+    private void logSecurityContextDetails() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            System.out.println("No authentication details found in SecurityContext.");
+            return;
+        }
+
+        System.out.println("Authentication Details:");
+        System.out.println("Principal: " + authentication.getPrincipal());
+        System.out.println("Credentials: " + authentication.getCredentials());
+        System.out.println("Authorities: ");
+        authentication.getAuthorities().forEach(authority ->
+                System.out.println(" - " + authority.getAuthority())
+        );
+        System.out.println("Details: " + authentication.getDetails());
+        System.out.println("Name: " + authentication.getName());
+        System.out.println("Authenticated: " + authentication.isAuthenticated());
+    }
+
 }

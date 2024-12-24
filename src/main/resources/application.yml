@@ -1,23 +1,17 @@
 server:
   port: 8081
-  servlet:
-    context-path: /iam
 
-#spring:
-#  application:
-#    name: IAM Service
-#  datasource:
-#    url: jdbc:mysql://localhost:3306/iam_service_db
-#    username: root
-#    password:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#  jpa:
-#    hibernate:
-#      ddl-auto: update
-#    show-sql: true
-#    properties:
-#      hibernate:
-#        format_sql: true
+#keycloak:
+#  auth-server-url: http://localhost:8080/auth  # URL của Keycloak Server
+#  realm: IAMService  # Tên Realm đã tạo trong Keycloak
+#  resource: iam-service  # Client ID được tạo trong Keycloak
+#  credentials:
+#    secret: t5w40CfqlRxjCVhXRsooZPLPvNmjL27n  # Client Secret được tạo trong Keycloak
+#  bearer-only: true  # Cấu hình để Spring Boot nhận diện người dùng và sử dụng Bearer Token
+#  use-resource-role-mappings: true  # Nếu muốn sử dụng tài khoản người dùng trong Keycloak để kiểm tra xác thực
+#  redirect-uri: /login/*  # Cấu hình các URL chuyển hướng (redirect URIs)
+##  realm-public-key: your-public-key  # Kiểm tra thông tin xác thực qua JWT
+#  ssl-required: external  # Tăng cường bảo mật cho các yêu cầu khác (tuỳ chọn)
 
 spring:
   datasource:

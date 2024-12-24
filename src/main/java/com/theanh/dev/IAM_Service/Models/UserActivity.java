@@ -18,6 +18,8 @@ public class UserActivity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    private String ip;
+
     private String email;
 
     private String activity;

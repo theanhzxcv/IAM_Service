@@ -2,13 +2,12 @@ package com.theanh.dev.IAM_Service.Dtos.User;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
-public class UserUpdateDto {
+public class UpdateProfileDto {
 
     @NotBlank(message = "FIELD_REQUIRED")
     private String firstname;

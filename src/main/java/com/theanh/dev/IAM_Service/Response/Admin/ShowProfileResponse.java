@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Response;
+package com.theanh.dev.IAM_Service.Response.Admin;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,13 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
+public class ShowProfileResponse {
     private String email;
     private String firstname;
     private String lastname;
@@ -20,5 +19,4 @@ public class UserResponse {
     private String imageUrl;
     private int phone;
     private Date doB;
-    private Set<RoleResponse> roles;
 }
