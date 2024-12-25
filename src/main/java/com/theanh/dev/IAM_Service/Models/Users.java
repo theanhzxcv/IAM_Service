@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,6 @@ public class Users implements UserDetails {
     private Date doB;
 
     private String secret;
-//    private boolean is2faEnable = false;
     private boolean isVerified = false;
 
     private boolean isDeleted = false;
@@ -46,9 +46,15 @@ public class Users implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Convert the Set<Roles> to a collection of GrantedAuthority objects
         return roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                .flatMap(role -> {
+                    Set<GrantedAuthority> authorities = new HashSet<>();
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+                    role.getPermissions().forEach(permission ->
+                            authorities.add(new SimpleGrantedAuthority(permission.getResource() + ":" + permission.getScope()))
+                    );
+                    return authorities.stream();
+                })
                 .collect(Collectors.toSet());
     }
 
@@ -79,6 +85,6 @@ public class Users implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return !isDeleted && !isBanned && isVerified;
     }
 }

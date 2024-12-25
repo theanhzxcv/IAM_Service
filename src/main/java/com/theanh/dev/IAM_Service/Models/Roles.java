@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -18,12 +19,16 @@ import java.util.Set;
 public class Roles implements GrantedAuthority {
 
     @Id
+    @Column(name = "role_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column(name = "role_name")
     private String name;
-    private String description;
+
     private boolean isDeleted = false;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Permissions> permissions;
 
     @Override

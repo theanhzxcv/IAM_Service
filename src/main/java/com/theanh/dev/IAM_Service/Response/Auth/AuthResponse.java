@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Response;
+package com.theanh.dev.IAM_Service.Response.Auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

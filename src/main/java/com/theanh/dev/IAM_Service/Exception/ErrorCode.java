@@ -22,8 +22,8 @@ public enum ErrorCode {
     NOT_EXISTED_USER( "Oops! We couldn't find your account with that email address. " +
             "Make sure it's spelled correctly or create a new one!", HttpStatus.NOT_FOUND),
 
-    UNAUTHENTICATED("Login failed. Please check your email and password!", HttpStatus.UNAUTHORIZED)
-    ;
+    UNAUTHENTICATED("Login failed. Please check your email and password!", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED("You do not have permission!", HttpStatus.UNAUTHORIZED);
 
     private final String message;
     private final HttpStatus httpStatus;

@@ -6,12 +6,13 @@ import com.theanh.dev.IAM_Service.Dtos.Auth.VerificationDto;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
+import com.theanh.dev.IAM_Service.Models.Roles;
 import com.theanh.dev.IAM_Service.Models.UserActivity;
 import com.theanh.dev.IAM_Service.Models.Users;
 import com.theanh.dev.IAM_Service.Repositories.RoleRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserActivityRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserRepository;
-import com.theanh.dev.IAM_Service.Response.AuthResponse;
+import com.theanh.dev.IAM_Service.Response.Auth.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
 import com.theanh.dev.IAM_Service.Services.Email.EmailService;
 import com.theanh.dev.IAM_Service.Services.Tfa.TwoFactorAuthenticationService;
@@ -25,6 +26,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -62,32 +65,17 @@ public class AuthService implements IAuthService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-//        if (!user.is2faEnable()) {
-//
-//        }
-
         try {
-
             user.setVerified(false);
             userRepository.save(user);
             return "Log in successfully. Please verify to continue!";
-//            String accessToken = jwtUtil.generateAccessToken(user);
-//            String refreshToken = jwtUtil.generateRefreshToken(user);
-//
-//            return AuthResponse.builder()
-//                    .accessToken(accessToken)
-//                    .refreshToken(refreshToken)
-//                    .authenticated(true)
-//                    .build();
         } catch (Exception e) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
-
-
     }
 
     @Override
-    public AuthResponse verifyAccount(VerificationDto verificationDto, HttpServletRequest request) {
+    public AuthResponse verifyAccount(VerificationDto verificationDto) {
         Users user = userRepository.findByEmail(verificationDto.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
@@ -102,18 +90,6 @@ public class AuthService implements IAuthService {
         try {
             String accessToken = jwtUtil.generateAccessToken(user);
             String refreshToken = jwtUtil.generateRefreshToken(user);
-            String clientIp = getClientIp(request);
-            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
-                clientIp = "127.0.0.1";
-            }
-            UserActivity userActivity = UserActivity
-                    .builder()
-                    .ip(clientIp)
-                    .email(user.getEmail())
-                    .activity("Log in")
-                    .timestamp(new Date())
-                    .build();
-            userActivityRepository.save(userActivity);
 
             user.setVerified(true);
             userRepository.save(user);
@@ -128,7 +104,7 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public String register(RegistrationDto registrationDto) {
+    public String register(RegistrationDto registrationDto,  HttpServletRequest request) {
         if (userRepository.findByEmail(registrationDto.getEmail()).isPresent()) {
             throw new AppException(ErrorCode.EXISTED_USER);
         }
@@ -142,22 +118,29 @@ public class AuthService implements IAuthService {
             register.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
             register.setSecret(tfaService.generateSecretKey());
 
-//            String clientIp = getClientIp(request);
-//            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
-//                clientIp = "127.0.0.1";
-//            }
-//            UserActivity userActivity = UserActivity
-//                    .builder()
-//                    .ip(clientIp)
-//                    .email(user.getEmail())
-//                    .activity("Log in")
-//                    .timestamp(new Date())
-//                    .build();
-//            userActivityRepository.save(userActivity);
-//            var roles = roleRepository.findAllById(userDto.getRoles());
-//            register.setRoles("USER");
+            String clientIp = getClientIp(request);
+            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
+                clientIp = "127.0.0.1";
+            }
+            UserActivity userActivity = UserActivity
+                    .builder()
+                    .ip(clientIp)
+                    .email(register.getEmail())
+                    .activity("Register")
+                    .timestamp(new Date())
+                    .build();
+
+            userActivityRepository.save(userActivity);
+            Set<Roles> roles = new HashSet<>();
+            var userRole = roleRepository.findByName("USER")
+                    .orElseThrow(() -> new RuntimeException("Role user nor found"));
+            roles.add(userRole);
+            register.setRoles(roles);
             userRepository.save(register);
-            emailService.sendRegistrationEmail(registrationDto.getEmail(), registrationDto.getPassword(), registrationDto.getFirstname(), registrationDto.getLastname());
+            emailService.sendRegistrationEmail(registrationDto.getEmail(),
+                    registrationDto.getPassword(),
+                    registrationDto.getFirstname(),
+                    registrationDto.getLastname());
             return "Register successfully!";
         } catch (Exception e) {
             throw new RuntimeException(e);

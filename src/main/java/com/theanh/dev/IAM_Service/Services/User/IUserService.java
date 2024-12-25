@@ -3,8 +3,7 @@ package com.theanh.dev.IAM_Service.Services.User;
 import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UpdateProfileDto;
-import com.theanh.dev.IAM_Service.Response.Admin.ShowProfileResponse;
-import com.theanh.dev.IAM_Service.Response.UserResponse;
+import com.theanh.dev.IAM_Service.Response.User.ShowProfileResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 

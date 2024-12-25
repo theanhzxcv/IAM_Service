@@ -1,8 +1,7 @@
-package com.theanh.dev.IAM_Service.Response;
+package com.theanh.dev.IAM_Service.Response.Admin;
 
 import com.theanh.dev.IAM_Service.Dtos.Permission.PermissionDto;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
 
@@ -11,7 +10,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class RoleResponse {
+    private String id;
     private String name;
-    private String description;
     private Set<PermissionDto> permissions;
 }

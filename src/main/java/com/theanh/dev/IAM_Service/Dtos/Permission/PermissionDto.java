@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PermissionDto {
     private String name;
-    private String description;
+    private String resource;
+    private String scope;
 }

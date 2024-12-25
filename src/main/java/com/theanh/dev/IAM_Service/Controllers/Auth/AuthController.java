@@ -4,7 +4,7 @@ import com.theanh.dev.IAM_Service.Dtos.Auth.LoginDto;
 import com.theanh.dev.IAM_Service.Dtos.Auth.VerificationDto;
 import com.theanh.dev.IAM_Service.Dtos.Auth.RegistrationDto;
 import com.theanh.dev.IAM_Service.Response.ApiResponse;
-import com.theanh.dev.IAM_Service.Response.AuthResponse;
+import com.theanh.dev.IAM_Service.Response.Auth.AuthResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
 import com.theanh.dev.IAM_Service.Services.Auth.AuthService;
 import com.theanh.dev.IAM_Service.Services.Blacklist.JwtBlacklistService;
@@ -30,10 +30,11 @@ public class AuthController {
     JwtBlacklistService jwtBlacklistService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<?>> register(@RequestBody @Valid RegistrationDto registrationDto) {
+    public ResponseEntity<ApiResponse<?>> register(@RequestBody @Valid RegistrationDto registrationDto,
+                                                   HttpServletRequest request) {
         ApiResponse<String> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Registered");
-        apiResponse.setData(authService.register(registrationDto));
+        apiResponse.setData(authService.register(registrationDto, request));
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
@@ -49,17 +50,17 @@ public class AuthController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(@RequestBody VerificationDto verificationDto,
-                                                               HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(@RequestBody VerificationDto verificationDto) {
         ApiResponse<AuthResponse> apiResponse = new ApiResponse<>();
         apiResponse.setMessage("Verified");
-        apiResponse.setData(authService.verifyAccount(verificationDto, request));
+        apiResponse.setData(authService.verifyAccount(verificationDto));
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(HttpServletRequest request, HttpServletResponse response)
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(HttpServletRequest request,
+                                                                  HttpServletResponse response)
             throws IOException {
         ApiResponse<AuthResponse> apiResponse = new ApiResponse<>();
         apiResponse.setData(authService.refreshToken(request, response));

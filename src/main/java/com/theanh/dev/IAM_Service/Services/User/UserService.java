@@ -10,7 +10,7 @@ import com.theanh.dev.IAM_Service.Models.UserActivity;
 import com.theanh.dev.IAM_Service.Models.Users;
 import com.theanh.dev.IAM_Service.Repositories.UserActivityRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserRepository;
-import com.theanh.dev.IAM_Service.Response.Admin.ShowProfileResponse;
+import com.theanh.dev.IAM_Service.Response.User.ShowProfileResponse;
 import com.theanh.dev.IAM_Service.Security.JwtUtil;
 import com.theanh.dev.IAM_Service.Services.Email.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,11 +62,6 @@ public class UserService implements IUserService {
 
     @Override
     public ShowProfileResponse myProfile() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info("Username {}", authentication.getName());
-
-        authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
-
         String email = getCurrentUserEmail();
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));

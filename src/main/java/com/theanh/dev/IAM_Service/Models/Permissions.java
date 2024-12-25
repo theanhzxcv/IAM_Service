@@ -1,9 +1,6 @@
 package com.theanh.dev.IAM_Service.Models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,8 +17,10 @@ public class Permissions {
     @Id
     @Column(name = "permission_name")
     private String name;
-    private String resourceCode;// (User, Book, ...)
-    private String scope; // (write,
-    private String description;
+    @Column(name = "permission_resource")
+    private String resource;
+    @Column(name = "permission_scope")
+    private String scope;
+
     private boolean isDeleted = false;
 }

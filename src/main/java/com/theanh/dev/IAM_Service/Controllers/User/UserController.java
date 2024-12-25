@@ -3,20 +3,17 @@ package com.theanh.dev.IAM_Service.Controllers.User;
 import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
 import com.theanh.dev.IAM_Service.Dtos.User.UpdateProfileDto;
-import com.theanh.dev.IAM_Service.Response.Admin.ShowProfileResponse;
+import com.theanh.dev.IAM_Service.Response.User.ShowProfileResponse;
 import com.theanh.dev.IAM_Service.Response.ApiResponse;
-import com.theanh.dev.IAM_Service.Response.UserResponse;
 import com.theanh.dev.IAM_Service.Services.User.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
     UserService userService;
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/my-profile")
     public ResponseEntity<ApiResponse<ShowProfileResponse>> getMyProfile() {
         ApiResponse<ShowProfileResponse> apiResponse = new ApiResponse<>();

@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Dtos.Role;
+package com.theanh.dev.IAM_Service.Response.Admin;
 
 import com.theanh.dev.IAM_Service.Dtos.Permission.PermissionDto;
 import lombok.AllArgsConstructor;
@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 import java.util.Set;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoleDto {
+@Builder
+public class PermissionResponse {
     private String name;
-    private Set<String> permissions;
+    private String resource;
+    private String scope;
 }

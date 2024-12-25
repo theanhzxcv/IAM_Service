@@ -1,9 +1,10 @@
-package com.theanh.dev.IAM_Service.Services.Permission;
+package com.theanh.dev.IAM_Service.Services.Admin.Permission;
 
 import com.theanh.dev.IAM_Service.Dtos.Permission.PermissionDto;
 import com.theanh.dev.IAM_Service.Mapper.PermissionMapper;
 import com.theanh.dev.IAM_Service.Models.Permissions;
 import com.theanh.dev.IAM_Service.Repositories.PermissionRepository;
+import com.theanh.dev.IAM_Service.Response.Admin.PermissionResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,39 +15,39 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class PermissionService implements IPermissionService{
+public class PermissionService implements IPermissionService {
     PermissionMapper permissionMapper;
     PermissionRepository permissionRepository;
 
     @Override
-    public PermissionDto createPermission(PermissionDto permissionDto) {
+    public PermissionResponse createPermission(PermissionDto permissionDto) {
         var permissions = permissionRepository.save(
                 permissionMapper.toPermission(permissionDto));
 
-        return permissionMapper.toPermissionDtos(permissions);
+        return permissionMapper.toPermissionResponse(permissions);
     }
 
     @Override
-    public PermissionDto updatePermission(PermissionDto permissionDto) {
-        var permission = permissionRepository.findById(permissionDto.getName())
+    public PermissionResponse updatePermission(String id, PermissionDto permissionDto) {
+        var permission = permissionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("..."));
-        if (permissionDto.getName() != null) {
-            permission.setName(permissionDto.getName());
+        if (permissionDto.getResource() != null) {
+            permission.setResource(permissionDto.getResource());
         }
-        if (permissionDto.getDescription() != null) {
-            permission.setDescription(permissionDto.getDescription());
+        if (permissionDto.getScope() != null) {
+            permission.setScope(permissionDto.getScope());
         }
 
         Permissions saveChange = permissionRepository.save(permission);
 
-        return permissionMapper.toPermissionDtos(saveChange);
+        return permissionMapper.toPermissionResponse(saveChange);
     }
 
     @Override
-    public List<PermissionDto> allPermission() {
+    public List<PermissionResponse> allPermission() {
         return permissionRepository.findAll()
                 .stream()
-                .map(permissionMapper::toPermissionDtos).toList();
+                .map(permissionMapper::toPermissionResponse).toList();
     }
 
     @Override
