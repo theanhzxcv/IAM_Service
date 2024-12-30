@@ -1,8 +1,9 @@
 package com.theanh.dev.IAM_Service.Services.User;
 
-import com.theanh.dev.IAM_Service.Dtos.User.ChangePasswordDto;
-import com.theanh.dev.IAM_Service.Dtos.User.ResetPasswordDto;
-import com.theanh.dev.IAM_Service.Dtos.User.UpdateProfileDto;
+import com.theanh.dev.IAM_Service.Dtos.Requests.User.ChangePasswordRequest;
+import com.theanh.dev.IAM_Service.Dtos.Requests.User.ResetPasswordRequest;
+import com.theanh.dev.IAM_Service.Dtos.Requests.User.UpdateProfileRequest;
+import com.theanh.dev.IAM_Service.Dtos.Response.User.ProfileResponse;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
@@ -10,9 +11,9 @@ import com.theanh.dev.IAM_Service.Models.UserActivity;
 import com.theanh.dev.IAM_Service.Models.Users;
 import com.theanh.dev.IAM_Service.Repositories.UserActivityRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserRepository;
-import com.theanh.dev.IAM_Service.Response.User.ShowProfileResponse;
-import com.theanh.dev.IAM_Service.Security.JwtUtil;
+import com.theanh.dev.IAM_Service.Jwt.JwtUtil;
 import com.theanh.dev.IAM_Service.Services.Email.EmailService;
+import com.theanh.dev.IAM_Service.Services.ServiceImp.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +34,13 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService implements IUserService {
-    JwtUtil jwtUtil;
-    UserMapper userMapper;
-    EmailService emailService;
-    UserRepository userRepository;
-    PasswordEncoder passwordEncoder;
-    UserActivityRepository userActivityRepository;
+    private final JwtUtil jwtUtil;
+    private final UserMapper userMapper;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserActivityRepository userActivityRepository;
 
     public String getCurrentUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
@@ -61,7 +61,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ShowProfileResponse myProfile() {
+    public ProfileResponse myProfile() {
         String email = getCurrentUserEmail();
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
@@ -74,26 +74,26 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public String updateProfile(UpdateProfileDto updateProfileDto) {
+    public String updateProfile(UpdateProfileRequest updateProfileRequest) {
         String email = getCurrentUserEmail();
 
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
-        if (updateProfileDto.getFirstname() != null) {
-            user.setFirstname(updateProfileDto.getFirstname());
+        if (updateProfileRequest.getFirstname() != null) {
+            user.setFirstname(updateProfileRequest.getFirstname());
         }
-        if (updateProfileDto.getLastname() != null) {
-            user.setLastname(updateProfileDto.getLastname());
+        if (updateProfileRequest.getLastname() != null) {
+            user.setLastname(updateProfileRequest.getLastname());
         }
-        if (updateProfileDto.getAddress() != null) {
-            user.setAddress(updateProfileDto.getAddress());
+        if (updateProfileRequest.getAddress() != null) {
+            user.setAddress(updateProfileRequest.getAddress());
         }
-        if (updateProfileDto.getPhone() != 0) {
-            user.setPhone(updateProfileDto.getPhone());
+        if (updateProfileRequest.getPhone() != 0) {
+            user.setPhone(updateProfileRequest.getPhone());
         }
-        if (updateProfileDto.getDoB() != null) {
-            user.setDoB(updateProfileDto.getDoB());
+        if (updateProfileRequest.getDoB() != null) {
+            user.setDoB(updateProfileRequest.getDoB());
         }
 
         try {
@@ -132,30 +132,30 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public String changePassword(ChangePasswordDto changePasswordDto, HttpServletRequest request) {
+    public String changePassword(ChangePasswordRequest changePasswordRequest, HttpServletRequest request) {
         String email = getCurrentUserEmail();
 
         Users user =  userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
-        if (!changePasswordDto.getEmail().equals(user.getEmail())) {
+        if (!changePasswordRequest.getEmail().equals(user.getEmail())) {
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        if (!passwordEncoder.matches(changePasswordDto.getOldPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        if (!changePasswordDto.getNewPassword().equals(changePasswordDto.getConfirmationPassword())) {
+        if (!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmationPassword())) {
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
         }
 
-        if (changePasswordDto.getNewPassword().isEmpty()) {
+        if (changePasswordRequest.getNewPassword().isEmpty()) {
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
         }
 
         try {
-            user.setPassword(passwordEncoder.encode(changePasswordDto.getNewPassword()));
+            user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
             String clientIp = getClientIp(request);
             if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
                 clientIp = "127.0.0.1";
@@ -169,7 +169,7 @@ public class UserService implements IUserService {
                     .build();
             userActivityRepository.save(userActivity);
             userRepository.save(user);
-            emailService.sendPasswordChangeEmail(user.getEmail(), changePasswordDto.getNewPassword());
+            emailService.sendPasswordChangeEmail(user.getEmail(), changePasswordRequest.getNewPassword());
         } catch (Exception e) {
             throw new AppException(ErrorCode.SESSION_EXPIRED);
         }
@@ -192,19 +192,19 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public String resetPassword(ResetPasswordDto resetPasswordDto, String token, String email) {
+    public String resetPassword(ResetPasswordRequest resetPasswordRequest, String token, String email) {
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
         if (!jwtUtil.isTokenValid(token, user)) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
-        if (!resetPasswordDto.getNewPassword().equals(resetPasswordDto.getConfirmationPassword())) {
+        if (!resetPasswordRequest.getNewPassword().equals(resetPasswordRequest.getConfirmationPassword())) {
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
         }
 
         try {
-            user.setPassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
+            user.setPassword(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
             userRepository.save(user);
             return "Your password has been reset" +
             "\nYou can now log in with your new password";

@@ -12,10 +12,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmailService {
-
-    JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
     public void sendRegistrationEmail(String email, String password, String firstname, String lastname) {
         SimpleMailMessage message = new SimpleMailMessage();

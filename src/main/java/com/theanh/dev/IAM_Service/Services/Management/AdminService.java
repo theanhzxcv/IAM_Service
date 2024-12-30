@@ -1,14 +1,15 @@
 package com.theanh.dev.IAM_Service.Services.Management;
 
-import com.theanh.dev.IAM_Service.Dtos.Admin.UserCreateDto;
-import com.theanh.dev.IAM_Service.Dtos.Admin.UserUpdateDto;
+import com.theanh.dev.IAM_Service.Dtos.Requests.Admin.UserCreateRequest;
+import com.theanh.dev.IAM_Service.Dtos.Requests.Admin.UserUpdateRequest;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
 import com.theanh.dev.IAM_Service.Models.Users;
 import com.theanh.dev.IAM_Service.Repositories.RoleRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserRepository;
-import com.theanh.dev.IAM_Service.Response.Admin.UserResponse;
+import com.theanh.dev.IAM_Service.Dtos.Response.Admin.UserResponse;
+import com.theanh.dev.IAM_Service.Services.ServiceImp.IAdminService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,18 +23,18 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AdminService implements IAdminService{
-    PasswordEncoder passwordEncoder;
-    RoleRepository roleRepository;
-    UserRepository userRepository;
-    UserMapper userMapper;
+public class AdminService implements IAdminService {
+    private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
-    public UserResponse createUser(UserCreateDto userCreateDto) {
-        Users user = userMapper.toUser(userCreateDto);
-        user.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
+    public UserResponse createUser(UserCreateRequest userCreateRequest) {
+        Users user = userMapper.toUser(userCreateRequest);
+        user.setPassword(passwordEncoder.encode(userCreateRequest.getPassword()));
 
-        var roles = roleRepository.findAllById(userCreateDto.getRoles());
+        var roles = roleRepository.findAllById(userCreateRequest.getRoles());
         user.setRoles(new HashSet<>(roles));
 
         try {
@@ -57,13 +58,13 @@ public class AdminService implements IAdminService{
     }
 
     @Override
-    public UserResponse updateUser(UserUpdateDto userUpdateDto) {
-        Users user = userRepository.findByEmail(userUpdateDto.getEmail()).orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
+    public UserResponse updateUser(UserUpdateRequest userUpdateRequest) {
+        Users user = userRepository.findByEmail(userUpdateRequest.getEmail()).orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
-        userMapper.updateUser(user, userUpdateDto);
-        user.setPassword(passwordEncoder.encode(userUpdateDto.getPassword()));
+        userMapper.updateUser(user, userUpdateRequest);
+        user.setPassword(passwordEncoder.encode(userUpdateRequest.getPassword()));
 
-        var roles = roleRepository.findAllById(userUpdateDto.getRoles());
+        var roles = roleRepository.findAllById(userUpdateRequest.getRoles());
         user.setRoles(new HashSet<>(roles));
 
         return userMapper.toUserResponse(userRepository.save(user));

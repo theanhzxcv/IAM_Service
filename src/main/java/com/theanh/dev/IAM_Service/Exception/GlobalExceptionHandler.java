@@ -1,6 +1,6 @@
 package com.theanh.dev.IAM_Service.Exception;
 
-import com.theanh.dev.IAM_Service.Response.ApiResponse;
+import com.theanh.dev.IAM_Service.Dtos.Response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;

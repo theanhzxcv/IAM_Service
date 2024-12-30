@@ -49,9 +49,10 @@ public class Users implements UserDetails {
         return roles.stream()
                 .flatMap(role -> {
                     Set<GrantedAuthority> authorities = new HashSet<>();
-                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+//                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
                     role.getPermissions().forEach(permission ->
-                            authorities.add(new SimpleGrantedAuthority(permission.getResource() + ":" + permission.getScope()))
+                            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()+ ":" +
+                                    permission.getResource() + "." + permission.getScope()))
                     );
                     return authorities.stream();
                 })

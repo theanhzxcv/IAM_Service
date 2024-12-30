@@ -26,6 +26,8 @@ public class Roles implements GrantedAuthority {
     @Column(name = "role_name")
     private String name;
 
+    private String isRoot;
+
     private boolean isDeleted = false;
 
     @ManyToMany(fetch = FetchType.EAGER)

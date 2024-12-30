@@ -6,6 +6,9 @@ import com.theanh.dev.IAM_Service.Models.Permissions;
 import com.theanh.dev.IAM_Service.Models.Roles;
 import com.theanh.dev.IAM_Service.Models.Users;
 import com.theanh.dev.IAM_Service.Repositories.UserRepository;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,8 +17,9 @@ import org.springframework.stereotype.Component;
 import java.io.Serializable;
 
 @Component
+@RequiredArgsConstructor
 public class CustomPermissionEvaluator implements PermissionEvaluator {
-    UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {

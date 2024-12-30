@@ -1,8 +1,8 @@
 package com.theanh.dev.IAM_Service.Services.Auth;
 
-import com.theanh.dev.IAM_Service.Dtos.Auth.LoginDto;
-import com.theanh.dev.IAM_Service.Dtos.Auth.RegistrationDto;
-import com.theanh.dev.IAM_Service.Dtos.Auth.VerificationDto;
+import com.theanh.dev.IAM_Service.Dtos.Requests.Auth.LoginRequest;
+import com.theanh.dev.IAM_Service.Dtos.Requests.Auth.RegistrationRequest;
+import com.theanh.dev.IAM_Service.Dtos.Requests.Auth.VerificationRequest;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Mapper.UserMapper;
@@ -12,9 +12,10 @@ import com.theanh.dev.IAM_Service.Models.Users;
 import com.theanh.dev.IAM_Service.Repositories.RoleRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserActivityRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserRepository;
-import com.theanh.dev.IAM_Service.Response.Auth.AuthResponse;
-import com.theanh.dev.IAM_Service.Security.JwtUtil;
+import com.theanh.dev.IAM_Service.Dtos.Response.Auth.AuthResponse;
+import com.theanh.dev.IAM_Service.Jwt.JwtUtil;
 import com.theanh.dev.IAM_Service.Services.Email.EmailService;
+import com.theanh.dev.IAM_Service.Services.ServiceImp.IAuthService;
 import com.theanh.dev.IAM_Service.Services.Tfa.TwoFactorAuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,14 +34,14 @@ import java.util.Set;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthService implements IAuthService {
-    JwtUtil jwtUtil;
-    UserMapper userMapper;
-    EmailService emailService;
-    UserRepository userRepository;
-    RoleRepository roleRepository;
-    PasswordEncoder passwordEncoder;
-    UserActivityRepository userActivityRepository;
-    TwoFactorAuthenticationService tfaService;
+    private final JwtUtil jwtUtil;
+    private final UserMapper userMapper;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserActivityRepository userActivityRepository;
+    private final TwoFactorAuthenticationService tfaService;
 
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
@@ -57,11 +58,11 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public String login(LoginDto loginDto) {
-        Users user = userRepository.findByEmail(loginDto.getEmail())
+    public String login(LoginRequest loginRequest) {
+        Users user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
-        if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
@@ -75,11 +76,11 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public AuthResponse verifyAccount(VerificationDto verificationDto) {
-        Users user = userRepository.findByEmail(verificationDto.getEmail())
+    public AuthResponse verifyAccount(VerificationRequest verificationRequest) {
+        Users user = userRepository.findByEmail(verificationRequest.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
-        if (!tfaService.verifyCode(user.getSecret(), verificationDto.getOtp())) {
+        if (!tfaService.verifyCode(user.getSecret(), verificationRequest.getOtp())) {
             throw new AppException(ErrorCode.INVALID_OTP);
         }
 
@@ -104,18 +105,18 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public String register(RegistrationDto registrationDto,  HttpServletRequest request) {
-        if (userRepository.findByEmail(registrationDto.getEmail()).isPresent()) {
+    public String register(RegistrationRequest registrationRequest, HttpServletRequest request) {
+        if (userRepository.findByEmail(registrationRequest.getEmail()).isPresent()) {
             throw new AppException(ErrorCode.EXISTED_USER);
         }
 
-        if (registrationDto.getEmail() == null || registrationDto.getPassword() == null) {
+        if (registrationRequest.getEmail() == null || registrationRequest.getPassword() == null) {
             throw new AppException(ErrorCode.FIELD_REQUIRED);
         }
 
         try {
-            Users register = userMapper.toUser(registrationDto);
-            register.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
+            Users register = userMapper.toUser(registrationRequest);
+            register.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
             register.setSecret(tfaService.generateSecretKey());
 
             String clientIp = getClientIp(request);
@@ -137,10 +138,10 @@ public class AuthService implements IAuthService {
             roles.add(userRole);
             register.setRoles(roles);
             userRepository.save(register);
-            emailService.sendRegistrationEmail(registrationDto.getEmail(),
-                    registrationDto.getPassword(),
-                    registrationDto.getFirstname(),
-                    registrationDto.getLastname());
+            emailService.sendRegistrationEmail(registrationRequest.getEmail(),
+                    registrationRequest.getPassword(),
+                    registrationRequest.getFirstname(),
+                    registrationRequest.getLastname());
             return "Register successfully!";
         } catch (Exception e) {
             throw new RuntimeException(e);
