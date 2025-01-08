@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Services.ServiceImp;
+package com.theanh.dev.IAM_Service.Services;
 
 import com.theanh.dev.IAM_Service.Dtos.Requests.User.ChangePasswordRequest;
 import com.theanh.dev.IAM_Service.Dtos.Requests.User.ResetPasswordRequest;

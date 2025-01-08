@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Services.ServiceImp;
+package com.theanh.dev.IAM_Service.Services;
 
 import com.theanh.dev.IAM_Service.Dtos.Requests.Role.RoleRequest;
 import com.theanh.dev.IAM_Service.Dtos.Response.Admin.RoleResponse;
@@ -9,7 +9,7 @@ public interface IRoleService {
 
     RoleResponse createRole(RoleRequest roleRequest);
 
-    RoleResponse updateRole(String id, RoleRequest roleRequest);
+    RoleResponse updateRole(String name, RoleRequest roleRequest);
 
     List<RoleResponse> allRole();
 

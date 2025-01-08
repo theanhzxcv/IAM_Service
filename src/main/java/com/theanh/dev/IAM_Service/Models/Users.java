@@ -2,10 +2,13 @@ package com.theanh.dev.IAM_Service.Models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -41,6 +44,14 @@ public class Users implements UserDetails {
     private boolean isDeleted = false;
     private boolean isBanned = false;
 
+    @CreatedBy
+    private String createdBy;
+    private Timestamp createdAt;
+
+    @LastModifiedBy
+    private String lastModifiedBy;
+    private Timestamp lastModifiedAt;
+
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Roles> roles;
 
@@ -49,10 +60,9 @@ public class Users implements UserDetails {
         return roles.stream()
                 .flatMap(role -> {
                     Set<GrantedAuthority> authorities = new HashSet<>();
-//                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
                     role.getPermissions().forEach(permission ->
-                            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()+ ":" +
-                                    permission.getResource() + "." + permission.getScope()))
+                            authorities.add(new SimpleGrantedAuthority(permission.getResource()
+                                    + ":" + permission.getScope()))
                     );
                     return authorities.stream();
                 })

@@ -1,5 +1,6 @@
 package com.theanh.dev.IAM_Service.Jwt;
 
+import com.nimbusds.jwt.JWT;
 import com.theanh.dev.IAM_Service.Exception.AppException;
 import com.theanh.dev.IAM_Service.Exception.ErrorCode;
 import com.theanh.dev.IAM_Service.Repositories.UserRepository;
@@ -11,11 +12,14 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.time.Instant;
 import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -23,7 +27,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class JwtUtil {
-
+    private final JwtDecoder jwtDecoder;
     private final RSAKeyUtil rsaKeyUtil;
     private final UserRepository userRepository;
     private final static long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 30;
@@ -73,20 +77,31 @@ public class JwtUtil {
         }
     }
 
-    public String extractEmail(String token) {
+    public String extractEmailSystemJwt(String token) {
         try {
             return extractClaims(token).getSubject();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public String extractEmailKeycloakJwt(String token) {
+        Jwt jwt = jwtDecoder.decode(token);
+        return jwt.getClaim("email");
+    }
+
+    public Date getSystemJwtExpirationTime(String token) {
+        try {
+            return extractClaims(token).getExpiration();
         } catch (Exception e) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
 
-    public long getExpirationTime(String token) {
-        try {
-            return extractClaims(token).getExpiration().getTime();
-        } catch (Exception e) {
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
-        }
+    public Date getKeycloakJwtExpirationTime(String token) {
+        Jwt jwt = jwtDecoder.decode(token);
+        Instant expiration = jwt.getExpiresAt();
+        return Date.from(expiration);
     }
 
     private boolean isTokenExpired(String token) {
@@ -97,8 +112,13 @@ public class JwtUtil {
         }
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String email = extractEmail(token);
+    public boolean isKeycloakTokenValid(String token, UserDetails userDetails) {
+        final String email = extractEmailKeycloakJwt(token);
+        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public boolean isSystemTokenValid(String token, UserDetails userDetails) {
+        final String email = extractEmailSystemJwt(token);
         return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }

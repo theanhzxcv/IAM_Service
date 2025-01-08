@@ -1,21 +1,21 @@
 package com.theanh.dev.IAM_Service.Controllers.Auth;
 
 import com.theanh.dev.IAM_Service.Dtos.Requests.Auth.LoginRequest;
-import com.theanh.dev.IAM_Service.Dtos.Requests.Auth.VerificationRequest;
+import com.theanh.dev.IAM_Service.Dtos.Requests.Auth.LogoutRequest;
 import com.theanh.dev.IAM_Service.Dtos.Requests.Auth.RegistrationRequest;
 import com.theanh.dev.IAM_Service.Dtos.Response.ApiResponse;
+import com.theanh.dev.IAM_Service.Dtos.Response.ApiResponseBuilder;
 import com.theanh.dev.IAM_Service.Dtos.Response.Auth.AuthResponse;
+import com.theanh.dev.IAM_Service.Factory.AuthServiceFactory;
 import com.theanh.dev.IAM_Service.Jwt.JwtUtil;
-import com.theanh.dev.IAM_Service.Services.Auth.AuthService;
-import com.theanh.dev.IAM_Service.Services.Blacklist.JwtBlacklistService;
+import com.theanh.dev.IAM_Service.Services.ServiceImp.Auth.ApplicationAuthService;
+import com.theanh.dev.IAM_Service.Services.ServiceImp.Blacklist.JwtBlacklistService;
+import com.theanh.dev.IAM_Service.Services.IAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -23,57 +23,63 @@ import java.io.IOException;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
+@Slf4j
 public class AuthController {
     private final JwtUtil jwtUtil;
-    private final AuthService authService;
+    private final AuthServiceFactory authServiceFactory;
+    private final ApplicationAuthService applicationAuthService;
     private final JwtBlacklistService jwtBlacklistService;
 
     @PostMapping("/users")
-    public ResponseEntity<ApiResponse<?>> register(@RequestBody @Valid RegistrationRequest registrationRequest,
-                                                   HttpServletRequest request) {
-        ApiResponse<String> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Registered");
-        apiResponse.setData(authService.register(registrationRequest, request));
+    public ApiResponse<String> register(@RequestBody @Valid RegistrationRequest registrationRequest) {
+        IAuthService authService = authServiceFactory.getAuthService();
+        String result = authService.register(registrationRequest);
 
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        return ApiResponseBuilder
+                .buildSuccessResponse("Register successful.", result);
     }
 
     @PostMapping("/tokens")
-    public ResponseEntity<ApiResponse<?>> login(@RequestBody @Valid LoginRequest loginRequest) {
-        ApiResponse<String> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Logged in");
-        apiResponse.setData(authService.login(loginRequest));
+    public ApiResponse<AuthResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
+        IAuthService authService = authServiceFactory.getAuthService();
+        AuthResponse result = authService.login(loginRequest);
 
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
-        //return ResponseEntity.ok("A verification email has been sent to your email address. Please check your inbox.");
+        return ApiResponseBuilder
+                .buildSuccessResponse("Login successful. Welcome back.", result);
     }
 
-    @PostMapping("/verification")
-    public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(@RequestBody VerificationRequest verificationRequest) {
-        ApiResponse<AuthResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Verified");
-        apiResponse.setData(authService.verifyAccount(verificationRequest));
-
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
-    }
+//    @PostMapping("/verification")
+//    public ApiResponse<AuthResponse> verifyOtp(
+//            @RequestBody VerificationRequest verificationRequest,
+//            HttpServletRequest servletRequest,
+//            HttpServletResponse response) {
+//
+//        IAuthService authService = authServiceFactory.getAuthService();
+//        AuthResponse result = authService.verifyAccount(verificationRequest);
+//
+////        String remoteIp = servletRequest.getHeader("X-Forwarded-For");
+////        log.info("ip address: " + remoteIp);
+////        log.info("Http response status: " + response.getStatus());
+//        return ApiResponseBuilder
+//                .buildSuccessResponse("Verify successful.", result);
+//    }
 
     @PostMapping("/tokens/refresh")
-    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(HttpServletRequest request,
-                                                                  HttpServletResponse response)
+    public ApiResponse<AuthResponse> refreshToken(@RequestParam String refreshToken)
             throws IOException {
-        ApiResponse<AuthResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setData(authService.refreshToken(request, response));
-        apiResponse.setMessage("Valid refresh token");
+        IAuthService authService = authServiceFactory.getAuthService();
+        AuthResponse result = authService.refreshToken(refreshToken);
 
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        return ApiResponseBuilder
+                .buildSuccessResponse("Token refreshed.", result);
+
     }
 
-//    @PostMapping("/logout")
-//    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authorizationHeader) {
-//        String token = authorizationHeader.substring(7);
-//        long expirationTime = jwtUtil.getExpirationTime(token);
-//        jwtBlacklistService.addToBlacklist(token);
-//
-//        return ResponseEntity.status(HttpStatus.OK).body("Logged out successfully");
-//    }
+    @PostMapping("logout")
+    public ApiResponse<String> logout(@RequestBody LogoutRequest logoutRequest, HttpServletRequest request) {
+        IAuthService authService = authServiceFactory.getAuthService();
+        String result = authService.logout(logoutRequest, request);
+        return ApiResponseBuilder
+                .buildSuccessResponse("Logged out", result);
+    }
 }

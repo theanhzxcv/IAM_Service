@@ -1,20 +1,15 @@
 package com.theanh.dev.IAM_Service.Controllers.User;
 
 import com.theanh.dev.IAM_Service.Dtos.Requests.User.ChangePasswordRequest;
-import com.theanh.dev.IAM_Service.Dtos.Requests.User.ResetPasswordRequest;
 import com.theanh.dev.IAM_Service.Dtos.Requests.User.UpdateProfileRequest;
+import com.theanh.dev.IAM_Service.Dtos.Response.ApiResponseBuilder;
 import com.theanh.dev.IAM_Service.Dtos.Response.User.ProfileResponse;
 import com.theanh.dev.IAM_Service.Dtos.Response.ApiResponse;
-import com.theanh.dev.IAM_Service.Services.User.UserService;
+import com.theanh.dev.IAM_Service.Services.ServiceImp.User.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.sql.Timestamp;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,34 +17,23 @@ import java.sql.Timestamp;
 public class UserController {
     private final UserService userService;
 
-//    @PreAuthorize("hasPermission('null', 'profile.delete')")
     @GetMapping
     public ApiResponse<ProfileResponse> getMyProfile() {
         ProfileResponse profileResponse = userService.myProfile();
 
-        return ApiResponse
-                .<ProfileResponse>builder()
-                .code(200)
-                .status("success")
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .message(profileResponse.getLastname() + " "
-                        + profileResponse.getFirstname() + "'s profile.")
-                .data(profileResponse)
-                .build();
+        return ApiResponseBuilder
+                .buildSuccessResponse(profileResponse.getLastname()
+                + profileResponse.getFirstname()
+                + "'s profile.", profileResponse);
     }
 
     @PatchMapping
-    public ApiResponse<?> updateMyProfile(@RequestBody @Valid UpdateProfileRequest updateProfileRequest) {
-        String result = userService.updateProfile(updateProfileRequest);
+    public ApiResponse<String> updateProfile(
+            @RequestBody @Valid UpdateProfileRequest updateProfileRequest) {
+        String updatedProfile = userService.updateProfile(updateProfileRequest);
 
-        return ApiResponse
-                .<String>builder()
-                .code(200)
-                .status("success")
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .message("Profile updated successful.")
-                .data(result)
-                .build();
+        return ApiResponseBuilder
+                .buildSuccessResponse("Profile updated successful.", updatedProfile);
     }
 
 //    @PostMapping("/avatar")
@@ -67,31 +51,23 @@ public class UserController {
 //    }
 
     @PatchMapping("/password")
-    public ApiResponse<?> changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest, HttpServletRequest request) {
-        String result = userService.changePassword(changePasswordRequest, request);
+    public ApiResponse<String> changePassword(
+            @RequestBody @Valid ChangePasswordRequest changePasswordRequest,
+                                         HttpServletRequest request) {
+        String changedPassword = userService.changePassword(changePasswordRequest, request);
 
-        return ApiResponse
-                .<String>builder()
-                .code(200)
-                .status("success")
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .message("Password changed successful.")
-                .data(result)
-                .build();
+        return ApiResponseBuilder
+                .buildSuccessResponse("Password changed successful.",
+                        changedPassword);
     }
 
     @PostMapping("/password/forgot")
-    public ApiResponse<?> forgotPassword(@RequestParam String email) {
-        String result = userService.forgotPassword(email);
+    public ApiResponse<String> forgotPassword(@RequestParam String email) {
+        String forgotPassword = userService.forgotPassword(email);
 
-        return ApiResponse
-                .<String>builder()
-                .code(200)
-                .status("success")
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .message("Reset password email sent.")
-                .data(result)
-                .build();
+        return ApiResponseBuilder
+                .buildSuccessResponse("Reset password email sent.",
+                        forgotPassword);
     }
 
 //    @GetMapping("/password/reset")

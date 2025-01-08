@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Services.User;
+package com.theanh.dev.IAM_Service.Services.ServiceImp.User;
 
 import com.theanh.dev.IAM_Service.Dtos.Requests.User.ChangePasswordRequest;
 import com.theanh.dev.IAM_Service.Dtos.Requests.User.ResetPasswordRequest;
@@ -12,15 +12,16 @@ import com.theanh.dev.IAM_Service.Models.Users;
 import com.theanh.dev.IAM_Service.Repositories.UserActivityRepository;
 import com.theanh.dev.IAM_Service.Repositories.UserRepository;
 import com.theanh.dev.IAM_Service.Jwt.JwtUtil;
-import com.theanh.dev.IAM_Service.Services.Email.EmailService;
-import com.theanh.dev.IAM_Service.Services.ServiceImp.IUserService;
+import com.theanh.dev.IAM_Service.Services.ServiceImp.Email.EmailService;
+import com.theanh.dev.IAM_Service.Services.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,9 +43,8 @@ public class UserService implements IUserService {
     private final PasswordEncoder passwordEncoder;
     private final UserActivityRepository userActivityRepository;
 
-    public String getCurrentUserEmail() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
+    @Value("${keycloak.enabled}")
+    private boolean isKeycloakEnabled;
 
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
@@ -58,6 +58,22 @@ public class UserService implements IUserService {
             ip = request.getRemoteAddr();
         }
         return ip;
+    }
+
+    public String getCurrentUserEmail() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+
+        if (isKeycloakEnabled) {
+            if (authentication instanceof JwtAuthenticationToken) {
+                Jwt jwt = ((JwtAuthenticationToken) authentication).getToken();
+                return jwt.getClaimAsString("email");
+            }
+        }
+        return authentication.getName();
     }
 
     @Override
@@ -196,7 +212,7 @@ public class UserService implements IUserService {
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_EXISTED_USER));
 
-        if (!jwtUtil.isTokenValid(token, user)) {
+        if (!jwtUtil.isSystemTokenValid(token, user)) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
         if (!resetPasswordRequest.getNewPassword().equals(resetPasswordRequest.getConfirmationPassword())) {

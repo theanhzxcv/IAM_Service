@@ -14,11 +14,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginRequest {
 
-    @NotBlank(message = "FIELD_REQUIRED")
-    @Email(message = "INVALID_EMAIL")
+//    @NotBlank(message = "FIELD_REQUIRED")
+//    @Email(message = "INVALID_CREDENTIALS")
     private String email;
 
-    @NotBlank(message = "FIELD_REQUIRED")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[@#$%^&+=_]).{8,}$", message = "INVALID_PASSWORD")
+//    @NotBlank(message = "FIELD_REQUIRED")
+//    @Pattern(regexp = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[@#$%^&+=_]).{8,}$", message = "INSECURE_PASSWORD")
     private String password;
 }

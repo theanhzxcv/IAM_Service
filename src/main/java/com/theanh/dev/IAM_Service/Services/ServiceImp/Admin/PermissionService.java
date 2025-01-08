@@ -1,14 +1,12 @@
-package com.theanh.dev.IAM_Service.Services.Admin;
+package com.theanh.dev.IAM_Service.Services.ServiceImp.Admin;
 
 import com.theanh.dev.IAM_Service.Dtos.Requests.Permission.PermissionRequest;
 import com.theanh.dev.IAM_Service.Mapper.PermissionMapper;
 import com.theanh.dev.IAM_Service.Models.Permissions;
 import com.theanh.dev.IAM_Service.Repositories.PermissionRepository;
 import com.theanh.dev.IAM_Service.Dtos.Response.Admin.PermissionResponse;
-import com.theanh.dev.IAM_Service.Services.ServiceImp.IPermissionService;
-import lombok.AccessLevel;
+import com.theanh.dev.IAM_Service.Services.IPermissionService;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,8 +26,8 @@ public class PermissionService implements IPermissionService {
     }
 
     @Override
-    public PermissionResponse updatePermission(String id, PermissionRequest permissionRequest) {
-        var permission = permissionRepository.findById(id)
+    public PermissionResponse updatePermission(String name, PermissionRequest permissionRequest) {
+        var permission = permissionRepository.findById(name)
                 .orElseThrow(() -> new RuntimeException("..."));
         if (permissionRequest.getResource() != null) {
             permission.setResource(permissionRequest.getResource());

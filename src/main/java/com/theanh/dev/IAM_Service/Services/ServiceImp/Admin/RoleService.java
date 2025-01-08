@@ -1,4 +1,4 @@
-package com.theanh.dev.IAM_Service.Services.Admin;
+package com.theanh.dev.IAM_Service.Services.ServiceImp.Admin;
 
 import com.theanh.dev.IAM_Service.Dtos.Requests.Role.RoleRequest;
 import com.theanh.dev.IAM_Service.Mapper.RoleMapper;
@@ -6,10 +6,8 @@ import com.theanh.dev.IAM_Service.Models.Roles;
 import com.theanh.dev.IAM_Service.Repositories.PermissionRepository;
 import com.theanh.dev.IAM_Service.Repositories.RoleRepository;
 import com.theanh.dev.IAM_Service.Dtos.Response.Admin.RoleResponse;
-import com.theanh.dev.IAM_Service.Services.ServiceImp.IRoleService;
-import lombok.AccessLevel;
+import com.theanh.dev.IAM_Service.Services.IRoleService;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -24,7 +22,7 @@ public class RoleService implements IRoleService {
 
     @Override
     public RoleResponse createRole(RoleRequest roleRequest) {
-        if (roleRepository.existsByName(roleRequest.getName())) {
+        if (roleRepository.findById(roleRequest.getName()).isPresent()) {
             throw new RuntimeException("This role existed");
         }
         var role = roleMapper.toRole(roleRequest);
@@ -36,8 +34,8 @@ public class RoleService implements IRoleService {
     }
 
     @Override
-    public RoleResponse updateRole(String id, RoleRequest roleRequest) {
-        var role = roleRepository.findById(id)
+    public RoleResponse updateRole(String name, RoleRequest roleRequest) {
+        var role = roleRepository.findById(name)
                 .orElseThrow(() -> new RuntimeException("..."));
         if (roleRequest.getPermissions() != null) {
             var permissions = permissionRepository.findAllById(roleRequest.getPermissions());

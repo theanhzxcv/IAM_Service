@@ -5,12 +5,14 @@ import com.theanh.dev.IAM_Service.Dtos.Requests.Admin.UserUpdateRequest;
 import com.theanh.dev.IAM_Service.Dtos.Requests.Auth.RegistrationRequest;
 import com.theanh.dev.IAM_Service.Dtos.Requests.User.ResetPasswordRequest;
 import com.theanh.dev.IAM_Service.Dtos.Requests.User.UpdateProfileRequest;
+import com.theanh.dev.IAM_Service.Dtos.Response.Management.UserResponse;
 import com.theanh.dev.IAM_Service.Models.Users;
 import com.theanh.dev.IAM_Service.Dtos.Response.User.ProfileResponse;
-import com.theanh.dev.IAM_Service.Dtos.Response.Admin.UserResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -24,6 +26,8 @@ public interface UserMapper {
     Users toUser(UserCreateRequest userCreateRequest);
 
     UserResponse toUserResponse(Users user);
+
+    List<UserResponse> toUserResponse(List<Users> user);
 
     ProfileResponse toShowProfile(Users user);
 

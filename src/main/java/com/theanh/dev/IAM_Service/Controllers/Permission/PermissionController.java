@@ -3,59 +3,54 @@ package com.theanh.dev.IAM_Service.Controllers.Permission;
 import com.theanh.dev.IAM_Service.Dtos.Requests.Permission.PermissionRequest;
 import com.theanh.dev.IAM_Service.Dtos.Response.Admin.PermissionResponse;
 import com.theanh.dev.IAM_Service.Dtos.Response.ApiResponse;
-import com.theanh.dev.IAM_Service.Services.Admin.PermissionService;
-import lombok.AccessLevel;
+import com.theanh.dev.IAM_Service.Dtos.Response.ApiResponseBuilder;
+import com.theanh.dev.IAM_Service.Services.ServiceImp.Admin.PermissionService;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/permission")
+@RequestMapping("/api/permissions")
 public class PermissionController {
     private final PermissionService permissionService;
 
 //    @PreAuthorize("hasPermission('permission', 'write')")
     @PostMapping
-    public ResponseEntity<ApiResponse<PermissionResponse>> createPermission(@RequestBody PermissionRequest permissionRequest) {
-        ApiResponse<PermissionResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Permission created");
-        apiResponse.setData(permissionService.createPermission(permissionRequest));
+    public ApiResponse<PermissionResponse> createPermission(@RequestBody PermissionRequest permissionRequest) {
+        PermissionResponse newPermission = permissionService.createPermission(permissionRequest);
 
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        return ApiResponseBuilder
+                .buildSuccessResponse("Permission created.", newPermission);
     }
 
 //    @PreAuthorize("hasAuthority('permission:read')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PermissionResponse>>> getAllPermissions() {
-        ApiResponse<List<PermissionResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("All permissions");
-        apiResponse.setData(permissionService.allPermission());
+    public ApiResponse<List<PermissionResponse>> getAllPermissions() {
+        List<PermissionResponse> allPermission = permissionService.allPermission();
 
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        return ApiResponseBuilder
+                .buildSuccessResponse("All permission.", allPermission);
     }
 
 //    @PreAuthorize("hasAuthority('permission:update')")
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<PermissionResponse>> updatePermission(@PathVariable("id") String id, @RequestBody PermissionRequest permissionRequest) {
-        ApiResponse<PermissionResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Update permissions");
-        apiResponse.setData(permissionService.updatePermission(id, permissionRequest));
+    @PutMapping("/{name}")
+    public ApiResponse<PermissionResponse> updatePermission(
+            @PathVariable("name") String name,
+            @RequestBody PermissionRequest permissionRequest) {
+        PermissionResponse updatedPermission = permissionService.updatePermission(name, permissionRequest);
 
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        return ApiResponseBuilder
+                .buildSuccessResponse("Permission updated.", updatedPermission);
     }
 
 //    @PreAuthorize("hasAuthority('permission:delete')")
     @DeleteMapping("/{name}")
-    public ResponseEntity<ApiResponse<?>> deletePermission(@PathVariable("name") String permissionName) {
-        ApiResponse<String> apiResponse = new ApiResponse<>();
-        apiResponse.setMessage("Delete permissions");
-        apiResponse.setData(permissionService.deletePermission(permissionName));
+    public ApiResponse<String> deletePermission(@PathVariable("name") String permissionName) {
+        String deletedPermission = permissionService.deletePermission(permissionName);
 
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+        return ApiResponseBuilder
+                .buildSuccessResponse("Permission deleted.", deletedPermission);
     }
 }

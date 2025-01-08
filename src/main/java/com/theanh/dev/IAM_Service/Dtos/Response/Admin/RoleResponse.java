@@ -10,7 +10,6 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class RoleResponse {
-    private String id;
     private String name;
     private Set<PermissionRequest> permissions;
 }
